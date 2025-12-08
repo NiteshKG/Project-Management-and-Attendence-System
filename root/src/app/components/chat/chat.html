@@ -1,0 +1,26 @@
+ @if(show){
+ <div class="w-40 border-blue-950 bg-white rounded-xl" >
+  <div class="flex flex-col gap-2 p-4 max-h-[400px] overflow-y-auto">
+  <div *ngFor="let m of messages"
+       class="bg-blue-700 text-white px-4 py-2 rounded-xl max-w-[70%] w-fit break-words whitespace-pre-wrap">
+    {{ m }}
+  </div>
+</div>
+
+
+<form  #myForm="ngForm" (ngSubmit)="onSubmit(myForm)">
+   <input type="text" class="form-control" id="msg" name="msg" placeholder="Enter message" required [(ngModel)]="message">
+   <button class=" bg-slate-500 text-green-500 rounded-2xl "  type="submit" [disabled]="!myForm.form.valid" >
+     Save Message
+   </button>
+</form>
+        <button (click)="formShow()" >
+        Close chat
+      </button>
+</div>
+ }
+ @else{
+      <button (click)="formShow()" class="bg-red-400 text-black rounded-2xl" >
+        Need Help?
+      </button>
+ }

@@ -1,0 +1,85 @@
+
+<div class="h-20 top-0 w-full flex items-center justify-center bg-blue-400" >
+
+
+<h1 class="text-white text-xl font-bold m-4 p-4">
+    Welcome to your desk, {{ loggedName }}
+  </h1>
+
+  <button 
+    (click)="logout()"
+    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">
+    Logout
+  </button>
+
+
+</div>
+<div class=" relative h-screen w-full flex items-center justify-center bg-zinc-800" >
+
+
+<div class="bg-slate-200 absolute top-0 left-0 p-8 m-4 rounded-lg shadow-lg w-[4cm] h-[3cm]" >
+     
+  <h3  *ngIf="dayStarted()" class="font-bold text-lg mb-2">{{ timerText() }}</h3>
+
+  
+  <button 
+    *ngIf="!dayStarted()" 
+    (click)="startDay()"
+    class="px-3 py-2 bg-green-600 text-white rounded-lg w-full">
+    Start Day
+  </button>
+
+ 
+  <button 
+    *ngIf="dayStarted()" 
+    (click)="endDay()"
+    class="px-3 py-2 bg-red-600 text-white rounded-lg w-full">
+    End Day
+  </button>
+
+</div>
+ 
+<div class="mt-0 w-full flex flex-col items-center space-y-4">
+
+  <h2 class="text-white text-2xl font-bold mb-4">Your Projects</h2>
+
+ 
+  <div *ngFor="let p of projects; let i = index"
+       class="bg-white p-4 rounded-xl shadow w-[12cm]">
+
+    <h3 class="font-bold text-lg">{{ p.name }}</h3>
+
+    
+    <ul class="ml-4 mt-2">
+      <li *ngFor="let t of p.tasks">
+         {{ t.description }} - <span class="text-blue-600">{{ t.status }}</span> 
+        
+      </li>
+    </ul>
+
+    
+    <div class="flex justify-between mt-4">
+      <button (click)="editProject(i)"
+        class="bg-yellow-500 text-white px-3 py-1 rounded">Edit</button>
+
+      <button (click)="deleteProject(i)"
+        class="bg-red-600 text-white px-3 py-1 rounded">Delete</button>
+    </div>
+
+  </div>
+
+  
+  <button
+    (click)="addProject()"
+    class="bg-green-600 text-white px-4 py-2 rounded-lg">
+    + Add New Project
+  </button>
+
+</div>
+
+  <div class="origin-bottom-right" >
+      <app-chat></app-chat>
+  </div>
+
+</div>
+

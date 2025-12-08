@@ -1,0 +1,72 @@
+<div class="h-screen w-full flex items-center justify-center bg-blue-400">
+
+  <div class="bg-slate-200 p-8 rounded-lg shadow-lg w-[10cm]">
+  <div *ngIf="successMessage()" class="text-green-600 font-semibold text-center">
+  {{ successMessage() }}
+</div>
+<div *ngIf="errorMessage()" class="text-red-600 font-semibold text-center">
+  {{ errorMessage() }}
+</div>
+
+
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
+
+      
+      
+
+      
+      <div class="flex flex-col">
+        <label for="userName" class="font-semibold mb-1">Email:</label>
+        <input
+          id="userName"
+          type="email"
+          formControlName="userName"
+          placeholder="Enter your email"
+          class="p-2 rounded-lg border border-blue-950"
+        />
+
+        <div *ngIf="userName?.hasError('required') && userName?.touched" class="text-red-600 text-sm">
+          Email should not be empty
+        </div>
+
+        <div *ngIf="userName?.hasError('minlength') && userName?.touched" class="text-red-600 text-sm">
+          Email must be at least 4 characters
+        </div>
+      </div>
+
+     
+      <div class="flex flex-col">
+        <label for="password" class="font-semibold mb-1">Password:</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Enter password"
+          class="p-2 rounded-lg border border-blue-950"
+        />
+
+        <div *ngIf="password?.hasError('required') && password?.touched" class="text-red-600 text-sm">
+          Password should not be empty
+        </div>
+
+        <div *ngIf="password?.hasError('minlength') && password?.touched" class="text-red-600 text-sm">
+          Password must be at least 4 characters
+        </div>
+      </div>
+
+     
+      
+
+     
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg mt-3">
+        Login
+      </button>
+      <h4 class="text-bold">Don't have an account? <a routerLink="/signup" class="hover:underline">Create</a></h4>
+      
+
+    </form>
+
+  </div>
+
+</div>

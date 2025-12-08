@@ -1,0 +1,98 @@
+<div class="h-screen w-full flex items-center justify-center bg-blue-400">
+
+  <div class="bg-slate-200 p-8 rounded-lg shadow-lg w-[10cm]">
+    <p class="text-sm text-green-600" *ngIf="successMessage">{{ successMessage() }}</p>
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-4">
+
+      
+      <div class="flex flex-col">
+        <label for="fullName" class="font-semibold mb-1">Full Name:</label>
+        <input
+          id="fullName"
+          type="text"
+          formControlName="fullName"
+          placeholder="Enter your name"
+          class="p-2 rounded-lg border border-blue-950"
+        />
+
+        <div *ngIf="fullName?.hasError('required') && fullName?.touched" class="text-red-600 text-sm">
+          Name should not be empty
+        </div>
+
+        <div *ngIf="fullName?.hasError('minlength') && fullName?.touched" class="text-red-600 text-sm">
+          Name must be at least 4 characters
+        </div>
+      </div>
+
+      
+      <div class="flex flex-col">
+        <label for="userName" class="font-semibold mb-1">Email:</label>
+        <input
+          id="userName"
+          type="email"
+          formControlName="userName"
+          placeholder="Enter your email"
+          class="p-2 rounded-lg border border-blue-950"
+        />
+
+        <div *ngIf="userName?.hasError('required') && userName?.touched" class="text-red-600 text-sm">
+          Email should not be empty
+        </div>
+
+        <div *ngIf="userName?.hasError('minlength') && userName?.touched" class="text-red-600 text-sm">
+          Email must be at least 4 characters
+        </div>
+      </div>
+
+     
+      <div class="flex flex-col">
+        <label for="password" class="font-semibold mb-1">Password:</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Enter password"
+          class="p-2 rounded-lg border border-blue-950"
+        />
+
+        <div *ngIf="password?.hasError('required') && password?.touched" class="text-red-600 text-sm">
+          Password should not be empty
+        </div>
+
+        <div *ngIf="password?.hasError('minlength') && password?.touched" class="text-red-600 text-sm">
+          Password must be at least 4 characters
+        </div>
+      </div>
+
+     
+      <div class="flex flex-col">
+        <label for="address" class="font-semibold mb-1">Address:</label>
+        <input
+          id="address"
+          type="text"
+          formControlName="address"
+          placeholder="Enter address"
+          class="p-2 rounded-lg border border-blue-950"
+        />
+
+        <div *ngIf="address?.hasError('required') && address?.touched" class="text-red-600 text-sm">
+          Address should not be empty
+        </div>
+
+        <div *ngIf="address?.hasError('minlength') && address?.touched" class="text-red-600 text-sm">
+          Address must be at least 4 characters
+        </div>
+      </div>
+
+     
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg mt-3">
+        Sign Up
+      </button>
+      <h4 class="text-bold">Already have an account? <a routerLink="/login" class="hover:underline">Login</a></h4>
+      
+
+    </form>
+
+  </div>
+
+</div>
