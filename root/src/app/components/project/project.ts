@@ -22,8 +22,8 @@ export class ProjectComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   successMessage = signal('');
-  
-  projectId: number | null = null;  
+
+  projectId: any | null = null;
 
   projectForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(4)]],
@@ -39,42 +39,73 @@ export class ProjectComponent implements OnInit {
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       if (params['id'] !== undefined) {
-        this.projectId = Number(params['id']);
-        const project = this.projectService.getProjectById(this.projectId);
+        this.projectId = params['id'];
+        const project = this.projectService.getProject(this.projectId);
 
         if (project) {
           this.fillForm(project);
         }
       } else {
-        
+
         this.addTask();
       }
     });
 
+  this.route.queryParams.subscribe(params => {
+  if (params['id']) {
+    this.projectId = params['id'];
+    this.projectService.getProject(this.projectId).subscribe({
+      next: (project) => {
+        this.fillForm(project);
+      },
+      error: (err) => console.error(err)
+    });
+  } else {
+    this.addTask();
+  }
+});
+
+
+
+
     setInterval(() => {
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
   }, 1000);
 
   }
 
+  loadProject(id: string){
+    this.projectService.getProject(id).subscribe(project =>{
+      if (!project) return;
+      this.fillForm(project);
+    })
+  }
+
   fillForm(project: any) {
+
+  const formattedDeadline = project.deadline
+    ? project.deadline.split("T")[0]   // ← convert "2025-12-18T00:00:00.000Z" → "2025-12-18"
+    : "";
+
   this.projectForm.patchValue({
-    name: project.name,
-    deadline: project.deadline,
-    manager: project.manager
+    name: project.name  || "",
+    deadline: formattedDeadline  || "",
+    manager: project.manager || ""
   });
 
   this.tasks.clear();
+  const tasks = project.tasks || [];
+  console.log('Project tasks:', tasks);
 
-  project.tasks.forEach((task: any) => {
+  tasks.forEach((task: any) => {
     this.tasks.push(
       this.fb.group({
-        description: [task.description, Validators.required],
-        status: [task.status, Validators.required],
-        isRunning: task.isRunning,    
-        startTime: task.startTime,
-        elapsedTime: task.elapsedTime || 0,  
-        logs: this.fb.control(task.logs || [])  
+        description: [task.description || "", Validators.required],
+        status: [task.status || 'Pending' , Validators.required],
+        isRunning: task.isRunning  || false,
+        startTime: task.startTime  || null,
+        elapsedTime: task.elapsedTime || 0,
+        logs: this.fb.control(task.logs || [])
       })
     );
   });
@@ -89,14 +120,15 @@ export class ProjectComponent implements OnInit {
       isRunning: [false],
       startTime: [null],
       elapsedTime: 0,
-      logs: this.fb.control([])  
+      logs: this.fb.control([])
     })
   );
 }
 
 
-  removeTask(i: number) {
+  removeTask(i: any) {
     this.tasks.removeAt(i);
+    this.projectService.deleteProject(i);
   }
 
   onSubmit() {
@@ -106,11 +138,16 @@ export class ProjectComponent implements OnInit {
     }
 
     if (this.projectId !== null) {
-      this.projectService.updateProject(this.projectId, this.projectForm.value);
+      this.projectService.updateProject(this.projectId, this.projectForm.value).subscribe(() =>{
       this.successMessage.set('Project Updated Successfully!');
+
+      });
+
     } else {
-      this.projectService.createProject(this.projectForm.value);
+      this.projectService.createProject(this.projectForm.value).subscribe(() =>{
       this.successMessage.set('Project Created Successfully!');
+      });
+
     }
 
     setTimeout(() => {
@@ -119,21 +156,30 @@ export class ProjectComponent implements OnInit {
     }, 1200);
   }
 
+
+
   startTimer(i: number) {
-  const task = this.tasks.at(i).value;
-  this.timesheet.startTask(task);
-  this.tasks.at(i).patchValue(task);
+  const formGroup = this.tasks.at(i);
+  const task = formGroup.value;
+  const updated = this.timesheet.startTask(task);
+  formGroup.patchValue(updated);
 }
 
 stopTimer(i: number) {
-  const task = this.tasks.at(i).value;
-  this.timesheet.stopTask(task);
-  this.tasks.at(i).patchValue(task);
+  const formGroup = this.tasks.at(i);
+  const task = formGroup.value;
+  const updated = this.timesheet.stopTask(task);
+  formGroup.patchValue(updated);
+
+  this.projectService.updateProject(this.projectId, this.projectForm.value).subscribe({
+    next: res => console.log('Project updated', res),
+    error: err => console.error(err)
+  });
 }
 
 formatDisplay(i: number) {
   const task = this.tasks.at(i).value;
-  
+
   return this.timesheet.formatTime(
     this.timesheet.getDisplayTime(task)
   );

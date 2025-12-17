@@ -35,34 +35,35 @@ errorMessage = signal('');
   get password() { return this.loginForm.get('password'); }
 
   onSubmit() {
-    if (!this.loginForm.valid) {
-      this.loginForm.markAllAsTouched(); 
-      return;
-      
-    }
+  if (!this.loginForm.valid) {
+    this.loginForm.markAllAsTouched();
+    return;
+  }
 
-    const email = this.userName?.value || '';
-    const pwd = this.password?.value || '';
+  const userName = this.userName?.value || '';
+  const password = this.password?.value || '';
 
-    const isValid = this.auth.login(email, pwd);  
+  this.auth.login(userName, password).subscribe({
+    next: (res) => {
+      console.log("Login Success:", res);
 
-    if (isValid) {
       this.successMessage.set('Login successful!');
       
       setTimeout(() => {
-        this.router.navigate(['/home']); 
+        this.router.navigate(['/home']);
       }, 800);
-    } else {
-      this.errorMessage.set('Invalid username of password');
-      setTimeout(() => {
-      
-      this.errorMessage.set(''); 
-    }, 2000);
+    },
+    error: (err) => {
+      console.log("Login Error:", err);
 
+      this.errorMessage.set(err.error?.msg || 'Invalid username or password');
       
-      
+      setTimeout(() => {
+        this.errorMessage.set('');
+      }, 2000);
     }
-  }
+  });
+}
 
 
 }

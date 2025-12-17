@@ -25,69 +25,96 @@ projects: any[] = [];
   private intervalId: any;
 
   ngOnInit() {
-  const user = JSON.parse(localStorage.getItem('loggedUser') || '{}');
-  this.loggedName = user.fullName || '';
+ this.auth.getCurrentUser().subscribe(res => {
+    if (res.user) this.loggedName = res.user.fullName;
 
-  if(this.attendance.isDayRunning()){
-    this.dayStarted.set(true);
-    this.startTimer();
+
+    if (res.runningAttendance) {
+      this.dayStarted.set(true);
+      const startTime = new Date(res.runningAttendance.startTime).getTime();
+      this.startTimer(startTime);
+    }
+  });
+
+this.loadProjects();
+
+}
+
+loadProjects(){
+  this.projectService.getProjects().subscribe({
+    next: (res) =>{
+      this.projects = res;
+      console.log("Projects: ",this.projects);
+    },
+    error: (err) => console.log(err)
+  })
+}
+
+startDay() {
+    this.attendance.startDay().subscribe(res => {
+      console.log("Day started:", res);
+      this.dayStarted.set(true);
+
+
+      const startTime = new Date(res.attendance.startTime).getTime();
+      this.startTimer(startTime);
+    });
   }
 
- this.projects = this.projectService.getProjects();
-}
+  endDay() {
+    this.attendance.endDay().subscribe(res => {
+      console.log("Day ended:", res);
+      this.dayStarted.set(false);
+      this.timerText.set('00:00:00');
+      clearInterval(this.intervalId);
+    });
+  }
 
-startDay(){
-  this.attendance.startDay();
-  this.dayStarted.set(true);
-  this.startTimer();
-}
-
-endDay(){
-  this.attendance.endDay();
-  this.dayStarted.set(false);
-  this.timerText.set('00:00:00');
-  clearInterval(this.intervalId);
-}
-
-startTimer(){
-  const email = this.projectService.getCurrentUserEmail();
-  if (!email) return;
-    const key = `attendanceStart_${email}`;
-  const startTime = Number(localStorage.getItem(key));
-  this.intervalId = setInterval(() =>{
-    const now = Date.now();
-    const diff = now - startTime;
-    this.timerText.set(this.attendance.formatTime(diff));
-  },1000)
-}
+  startTimer(startTime: number) {
+    this.intervalId = setInterval(() => {
+      const now = Date.now();
+      const diff = now - startTime;
+      this.timerText.set(this.formatTime(diff));
+    }, 1000);
+  }
 
 
+  formatTime(ms: number) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hrs = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+    const min = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+    const sec = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${hrs}:${min}:${sec}`;
+  }
 
-  
+
 
   logout(){
     this.auth.logout();
     this.router.navigate(['/login']);
   }
 
-  
 
-  openProject(id: number) {
-    this.router.navigate(['/project', id]);
+
+  openProject(id: string) {
+    this.router.navigate(['/project'], { queryParams: { id } });
   }
 
-  deleteProject(id: number) {
-    this.projectService.deleteProject(id);
-    this.projects = this.projectService.getProjects();
+  editProject(project: any) {
+  this.router.navigate(['/project'], { queryParams: { id: project._id } });
+}
+
+
+  deleteProject(project: any) {
+    this.projectService.deleteProject(project._id).subscribe({
+      next: () => this.loadProjects(),     
+      error: (err) => console.log(err)
+    });
   }
 
-  editProject(i: number) {
-  this.router.navigate(['/project'], { queryParams: { id: i } });
-}
-
-addProject(){
-  this.router.navigate(['/project']);
-}
+  addProject() {
+    this.router.navigate(['/project']);
+  }
 
   ngOnDestroy() {
     clearInterval(this.intervalId);

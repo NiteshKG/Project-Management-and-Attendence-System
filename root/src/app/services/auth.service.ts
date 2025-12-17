@@ -1,58 +1,69 @@
 import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
+import { HttpClient } from "@angular/common/http";
+import { Observable, tap, of } from "rxjs";
 
 @Injectable({
   providedIn:'root'
 })
 
 export class AuthService{
-  constructor(private router : Router){}
-  
+  constructor(private router : Router, private http: HttpClient){}
 
-  saveInfo(data: any){
-   const saved =  JSON.parse(localStorage.getItem('users') || ('[]') );
-   saved.push(data);
 
-    localStorage.setItem('users',JSON.stringify(saved));
+  saveInfo(data: any): Observable<any[]>{
+ //  const saved =  JSON.parse(localStorage.getItem('users') || ('[]') );
+ // saved.push(data);
+
+  //  localStorage.setItem('users',JSON.stringify(saved));
+  return this.http.post<any>('http://localhost:5000/api/auth/register', data);
   }
 
   getUser(){
     return JSON.parse(localStorage.getItem('users') || ('{}') );
   }
 
-  generateToken(email: string): string{
-    const token = btoa(email+'.' + new Date().getTime());
-    localStorage.setItem('token',token);
-    return token;
-  }
-
-  login(email: string, password: string) {
-  const users = JSON.parse(localStorage.getItem('users') || '[]');
-
-  const user = users.find((u: any) =>
-    u.userName === email && u.password === password
-  );
-
-  if (user) {
-    this.generateToken(email);
-
-    
-    localStorage.setItem('loggedUser', JSON.stringify(user));
-
-    return true;
-  } else {
-    return false;
-  }
-}
-
-logout() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('loggedUser'); 
   
+
+  login(userName: string, password: string): Observable<any> {
+    return this.http.post('http://localhost:5000/api/auth/login', { userName, password })
+      .pipe(
+        tap((res: any) => {
+
+          localStorage.setItem('token', res.token);
+          localStorage.setItem('user', JSON.stringify(res.user));
+        })
+      );
+  }
+
+  
+
+
+  getCurrentUser(): Observable<any | null> {
+  const token = localStorage.getItem('token');
+  if (!token) return of(null);
+
+  return this.http.get<any>('http://localhost:5000/api/attendance/me', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 }
 
-isLoggedIn() {
-  return !!localStorage.getItem('token');
+getLoggedUser(): Observable<any | null> {
+  const token = localStorage.getItem('token');
+  if (!token) return of(null);
+
+  return this.http.get<any>('http://localhost:5000/api/auth/loggeduser');
 }
+
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }
+
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('token');
+  }
+
+
 
 }

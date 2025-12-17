@@ -16,6 +16,7 @@ private formBuilder = inject(FormBuilder);
 private auth = inject(AuthService);
 
 successMessage=signal('');
+errorMessage=signal('');
 
 signupForm = this.formBuilder.group({
     fullName: ['', [Validators.required, Validators.minLength(4)]],
@@ -33,15 +34,29 @@ signupForm = this.formBuilder.group({
   onSubmit() {
     if(this.signupForm.valid){
       console.log(this.signupForm.value);
-      this.auth.saveInfo(this.signupForm.value);
-      this.successMessage.set('Form Submitted successfully');
+      this.auth.saveInfo(this.signupForm.value).subscribe({
+        next: (res) =>{
+          console.log("Success:",res);
+          this.successMessage.set('Form Submitted successfully');
       
 
-      setTimeout(() => {
+         setTimeout(() => {
       
-      this.successMessage.set(''); 
-    }, 3000);
+          this.successMessage.set(''); 
+          }, 3000);
     this.signupForm.reset();
+        },
+     
+        error: (err) =>{
+          console.log("Error:",err);
+          
+    this.signupForm.reset();
+        }
+
+        
+
+      });
+      
 
     } else {
       this.signupForm.markAllAsTouched(); 

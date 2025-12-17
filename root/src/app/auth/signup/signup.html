@@ -2,6 +2,7 @@
 
   <div class="bg-slate-200 p-8 rounded-lg shadow-lg w-[10cm]">
     <p class="text-sm text-green-600" *ngIf="successMessage">{{ successMessage() }}</p>
+    <p class="text-sm text-red-600" *ngIf="errorMessage">{{ errorMessage() }}</p>
     <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-4">
 
       

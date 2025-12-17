@@ -8,19 +8,19 @@
 
   <form [formGroup]="projectForm" (ngSubmit)="onSubmit()" class="space-y-4">
 
-   
+
     <div>
       <label class="font-semibold">Project Name</label>
       <input type="text" formControlName="name" class="p-2 w-full border rounded" />
     </div>
 
-    
+
     <div>
       <label class="font-semibold">Deadline</label>
       <input type="date" formControlName="deadline" class="p-2 w-full border rounded" />
     </div>
 
-    
+
     <div>
       <label class="font-semibold">Manager</label>
       <input type="text" formControlName="manager" class="p-2 w-full border rounded" />
@@ -35,7 +35,7 @@
              [formGroupName]="i"
              class="bg-white p-3 rounded-lg shadow">
 
-          <input 
+          <input
             class="p-2 border w-full rounded mb-2"
             formControlName="description"
             placeholder="Task Description" />
@@ -53,39 +53,39 @@ formControlName="status"
    {{ formatDisplay(i) }}
      </span>
 
- 
+
   <button type="button" *ngIf="!task.value.isRunning" (click)="startTimer(i)">Start</button>
   <button type="button" *ngIf="task.value.isRunning" (click)="stopTimer(i)">Stop</button>
 
-          <button (click)="removeTask(i)" 
+          <button (click)="removeTask(i)"
             type="button"
             class="mt-2 bg-red-500 text-white px-3 py-1 rounded">
             Remove Task
           </button>
-         
+
         <div *ngFor="let log of task.value.logs" class="text-sm mb-1">
     <p>
-      Start: {{ log.start | date:'shortTime' }} |
-      End: {{ log.end | date:'shortTime' }} |
-      
+      Start: {{ log.startTime | date:'shortTime' }} |
+      End: {{ log.endTime | date:'shortTime' }} |
+
     </p>
   </div>
 
         </div>
       </div>
 
-      <button 
-        type="button" 
+      <button
+        type="button"
         (click)="addTask()"
         class="mt-2 bg-green-600 text-white px-3 py-2 rounded">
         + Add Task
       </button>
 
-        
+
 
     </div>
 
-    <button 
+    <button
       type="submit"
       class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded mt-4">
       {{ projectId !== null ? "Update Project" : "Create Project" }}

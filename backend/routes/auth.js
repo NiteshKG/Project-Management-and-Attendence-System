@@ -2,6 +2,7 @@ import express from "express";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -65,6 +66,17 @@ router.post('/login', async (req, res) => {
         res.status(500).send("Server error");
     }
 });
+
+router.get("/loggeduser", authMiddleware, async (req, res) => {
+  try {
+    console.log("Logged-in user id:", req.user);
+    const user = await User.findById(req.user).select("-password");
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 
 export default router;
