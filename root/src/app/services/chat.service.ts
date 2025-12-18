@@ -15,10 +15,12 @@ export class ChatService{
   private messages$ = new BehaviorSubject<any[]>([]);
   constructor(private router : Router, private http: HttpClient, private zone: NgZone){}
  
-  connect(){
+  connect(projectId: string){
+
+    
     this.socket = io('http://localhost:5000');
 
-    this.socket.emit('loadMessages');
+    this.socket.emit('join-project', projectId);
 
     this.socket.on('previousMessages', (msgs) => {
       this.zone.run(() => this.messages$.next(msgs));

@@ -28,8 +28,11 @@ app.use('/api/projects', projectRoutes);
 io.on('connection', (socket) =>{
     console.log('User connected',socket.id);
    
-    socket.on("loadMessages", async () =>{
-       const messages = await Message.find()
+    socket.on("join-project", async (projectId) =>{
+        socket.join(projectId);
+        console.log('Socket ${socket.id} joined project ${projectId}');
+
+       const messages = await Message.find({projectId})
       .sort({ createdAt: 1 })
       .limit(100);
 
@@ -39,7 +42,7 @@ io.on('connection', (socket) =>{
    socket.on("sendMessage", async (data) => {
     try {
       const message = await Message.create(data); 
-      io.emit("newMessage", message);  
+      io.to(data.projectId).emit("newMessage", message);  
       console.log("Received message:", data);
            
     } catch (err) {

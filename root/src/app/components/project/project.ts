@@ -4,11 +4,19 @@ import { ReactiveFormsModule, FormBuilder, Validators, FormArray } from '@angula
 import { Router, ActivatedRoute } from '@angular/router';
 import { Project } from '../../services/project.service';
 import { TimeSheet } from '../../services/timesheet.service';
+import { AuthService } from '../../services/auth.service';
+import { Chat } from '../chat/chat';
+interface User{
+  
+  _id: string;
+  userName: string;
+  fullName: string;
 
+ }
 @Component({
   selector: 'app-project',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, Chat],
   templateUrl: './project.html',
   styleUrl: './project.css',
 })
@@ -16,16 +24,18 @@ export class ProjectComponent implements OnInit {
 
   private fb = inject(FormBuilder);
   private projectService = inject(Project);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private timesheet = inject(TimeSheet);
   private cdr = inject(ChangeDetectorRef);
-
+  user!: User;
   successMessage = signal('');
 
   projectId: any | null = null;
 
   projectForm = this.fb.group({
+    
     name: ['', [Validators.required, Validators.minLength(4)]],
     deadline: ['', Validators.required],
     manager: ['', [Validators.required, Validators.minLength(4)]],
@@ -37,6 +47,9 @@ export class ProjectComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.authService.getLoggedUser().subscribe(users =>{
+        this.user = users;
+      })
     this.route.queryParams.subscribe(params => {
       if (params['id'] !== undefined) {
         this.projectId = params['id'];
@@ -84,7 +97,7 @@ export class ProjectComponent implements OnInit {
   fillForm(project: any) {
 
   const formattedDeadline = project.deadline
-    ? project.deadline.split("T")[0]   // ← convert "2025-12-18T00:00:00.000Z" → "2025-12-18"
+    ? project.deadline.split("T")[0]  
     : "";
 
   this.projectForm.patchValue({
@@ -137,14 +150,24 @@ export class ProjectComponent implements OnInit {
       return;
     }
 
+    if (!this.user || !this.user._id) {
+    console.error('User not loaded');
+    return;
+  }
+
+  const payload = {
+    ...this.projectForm.value,
+    user: this.user._id  
+  };
+
     if (this.projectId !== null) {
-      this.projectService.updateProject(this.projectId, this.projectForm.value).subscribe(() =>{
+      this.projectService.updateProject(this.projectId, payload).subscribe(() =>{
       this.successMessage.set('Project Updated Successfully!');
 
       });
 
     } else {
-      this.projectService.createProject(this.projectForm.value).subscribe(() =>{
+      this.projectService.createProject(payload).subscribe(() =>{
       this.successMessage.set('Project Created Successfully!');
       });
 

@@ -17,7 +17,7 @@ const TaskSchema = new mongoose.Schema({
 });
 
 const ProjectSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   name: String,
   description: String,
   deadline: Date,

@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post("/", authMiddleware , async (req,res) =>{
     try{
-     const project = await Project.create({...req.body, user: req.userId})
+     const project = await Project.create({...req.body, user: req.user})
      res.json(project);
 
     }catch(err){
@@ -16,7 +16,7 @@ router.post("/", authMiddleware , async (req,res) =>{
 
 router.get("/", authMiddleware ,async (req,res) =>{
     try{
-     const projects = await Project.find({user: req.userId});
+     const projects = await Project.find({user: req.user});
      res.json(projects);
     }catch(err){
         res.status(500).json({error: err.message });
@@ -54,7 +54,7 @@ router.put("/:id", authMiddleware ,async (req,res) =>{
 
 router.delete("/:id", authMiddleware ,async (req,res) =>{
     try{
-     await project.findByIdAndDelete(req.params.id);
+     await Project.findByIdAndDelete(req.params.id);
      res.json({msg: "Project deleted"});
 
     }catch(err){

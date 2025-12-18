@@ -1,85 +1,254 @@
-
-<div class="h-20 top-0 w-full flex items-center justify-center bg-blue-400" >
-
-
-<h1 class="text-white text-xl font-bold m-4 p-4">
-    Welcome to your desk, {{ loggedName }}
-  </h1>
-
+<!-- Top Navigation Bar -->
+<nav class="sticky top-0 z-50 w-full flex items-center justify-between px-4 md:px-6 lg:px-8 bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg">
+  <div class="flex items-center space-x-3">
+    <div class="p-2 bg-white/20 rounded-full">
+      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </div>
+    <h1 class="text-white text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+      Welcome back, <span class="animate-pulse text-black">{{ loggedName }}</span>
+    </h1>
+  </div>
+  
   <button
     (click)="logout()"
-    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">
-    Logout
+    class="group relative overflow-hidden bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-500/25">
+    <span class="flex items-center space-x-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+      </svg>
+      <span>Logout</span>
+    </span>
+    <span class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
   </button>
+</nav>
 
+<!-- Main Content -->
+<main class="min-h-screen bg-gradient-to-br from-gray-900 via-zinc-900 to-slate-900 p-4 md:p-6 lg:p-8">
+  <!-- Floating Timer Card (Desktop) -->
+  <div class="hidden lg:block fixed top-24 left-4 z-30 animate-fade-in">
+    <div class="relative group">
+      <div class="absolute -inset-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+      <div class="relative bg-gray-800/90 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-gray-700/50 w-64">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-white font-bold text-lg flex items-center space-x-2">
+            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Work Timer</span>
+          </h3>
+          <div *ngIf="dayStarted()" class="h-2 w-2 rounded-full bg-green-400 animate-pulse"></div>
+          <div *ngIf="!dayStarted()" class="h-2 w-2 rounded-full bg-gray-400"></div>
+        </div>
+        
+        <div *ngIf="dayStarted()" class="mb-6">
+          <div class="text-center mb-3">
+            <div class="text-3xl font-bold text-white bg-gradient-to-r from-green-400 to-emerald-300 bg-clip-text text-transparent">
+              {{ timerText() }}
+            </div>
+            <div class="text-sm text-gray-400 mt-1">Active session</div>
+          </div>
+        </div>
+        
+        <div *ngIf="!dayStarted()" class="text-center mb-6">
+          <div class="text-2xl font-bold text-gray-400">--:--:--</div>
+          <div class="text-sm text-gray-500 mt-1">Ready to start</div>
+        </div>
+        
+        <button
+          *ngIf="!dayStarted()"
+          (click)="startDay()"
+          class="group relative w-full px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-green-500/25">
+          <span class="flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5 transform group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Start Day</span>
+          </span>
+        </button>
 
-</div>
-<div class=" relative h-screen w-full flex items-center justify-center bg-zinc-800" >
+        <button
+          *ngIf="dayStarted()"
+          (click)="endDay()"
+          class="group relative w-full px-4 py-3 bg-gradient-to-r from-red-600 to-pink-500 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-500/25">
+          <span class="flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+            </svg>
+            <span>End Day</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
 
+  <!-- Timer Card (Mobile/Tablet) -->
+  <div class="lg:hidden mb-6">
+    <div class="max-w-md mx-auto">
+      <div class="relative group">
+        <div class="absolute -inset-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+        <div class="relative bg-gray-800/90 backdrop-blur-sm p-6 rounded-xl shadow-2xl border border-gray-700/50">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-white font-bold text-lg flex items-center space-x-2">
+              <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>Work Timer</span>
+            </h3>
+            <div *ngIf="dayStarted()" class="h-2 w-2 rounded-full bg-green-400 animate-pulse"></div>
+            <div *ngIf="!dayStarted()" class="h-2 w-2 rounded-full bg-gray-400"></div>
+          </div>
+          
+          <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-6">
+            <div class="text-center md:text-left">
+              <div *ngIf="dayStarted()" class="text-3xl font-bold text-white bg-gradient-to-r from-green-400 to-emerald-300 bg-clip-text text-transparent">
+                {{ timerText() }}
+              </div>
+              <div *ngIf="!dayStarted()" class="text-3xl font-bold text-gray-400">--:--:--</div>
+              <div class="text-sm text-gray-400 mt-1">
+                {{ dayStarted() ? 'Active session' : 'Ready to start' }}
+              </div>
+            </div>
+            
+            <div class="flex space-x-3">
+              <button
+                *ngIf="!dayStarted()"
+                (click)="startDay()"
+                class="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-green-500/25">
+                Start Day
+              </button>
 
-<div class="bg-slate-200 absolute top-0 left-0 p-8 m-4 rounded-lg shadow-lg w-[4cm] h-[3cm]" >
+              <button
+                *ngIf="dayStarted()"
+                (click)="endDay()"
+                class="px-6 py-3 bg-gradient-to-r from-red-600 to-pink-500 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-500/25">
+                End Day
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <h3  *ngIf="dayStarted()" class="font-bold text-lg mb-2">{{ timerText() }}</h3>
-
-
-  <button
-    *ngIf="!dayStarted()"
-    (click)="startDay()"
-    class="px-3 py-2 bg-green-600 text-white rounded-lg w-full">
-    Start Day
-  </button>
-
-
-  <button
-    *ngIf="dayStarted()"
-    (click)="endDay()"
-    class="px-3 py-2 bg-red-600 text-white rounded-lg w-full">
-    End Day
-  </button>
-
-</div>
-
-<div class="mt-0 w-full flex flex-col items-center space-y-4">
-
-  <h2 class="text-white text-2xl font-bold mb-4">Your Projects</h2>
-
-
-  <div *ngFor="let p of projects; let i = index"
-       class="bg-white p-4 rounded-xl shadow w-[12cm]">
-
-    <h3 class="font-bold text-lg">{{ p.name }}</h3>
-
-
-    <ul class="ml-4 mt-2">
-      <li *ngFor="let t of p.tasks">
-         {{ t.description }} - <span class="text-blue-600">{{ t.status }}</span>
-
-      </li>
-    </ul>
-
-
-    <div class="flex justify-between mt-4">
-      <button (click)="editProject(p)"
-        class="bg-yellow-500 text-white px-3 py-1 rounded">Edit</button>
-
-      <button (click)="deleteProject(i)"
-        class="bg-red-600 text-white px-3 py-1 rounded">Delete</button>
+  <!-- Projects Section - Centered -->
+  <div class="lg:ml-72 max-w-7xl mx-auto px-4">
+    <!-- Header -->
+    <div class="text-center mb-10 md:mb-12">
+      <h2 class="text-3xl md:text-4xl font-bold mb-3">
+        <span class="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+          Your Projects
+        </span>
+      </h2>
+      <p class="text-gray-400 max-w-2xl mx-auto">
+        Manage all your projects and tasks in one place. Track progress and collaborate efficiently.
+      </p>
     </div>
 
-  </div>
+    <!-- Projects Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-10">
+      <div 
+        *ngFor="let p of projects; let i = index"
+        class="group relative animate-slide-up"
+        [style.animation-delay]="i * 100 + 'ms'">
+        <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
+        <div class="relative bg-gray-800/80 backdrop-blur-sm p-6 rounded-xl border border-gray-700/50 hover:border-cyan-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 h-full flex flex-col">
+          <!-- Project Header -->
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center space-x-3">
+              <div class="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20">
+                <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <h3 class="text-xl font-bold text-white truncate">{{ p.name }}</h3>
+            </div>
+            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-cyan-300 border border-cyan-500/30 whitespace-nowrap">
+              {{ p.tasks?.length || 0 }} tasks
+            </span>
+          </div>
 
+          <!-- Tasks List -->
+          <div class="space-y-3 mb-4 flex-grow overflow-y-auto max-h-64">
+            <div *ngFor="let t of p.tasks" class="flex items-center justify-between p-3 rounded-lg bg-gray-900/50 hover:bg-gray-800/50 transition-colors">
+              <div class="flex items-center space-x-3 min-w-0">
+                <div class="w-2 h-2 rounded-full flex-shrink-0" 
+                     [class]="{
+                       'bg-green-500': t.status === 'completed',
+                       'bg-yellow-500': t.status === 'in-progress',
+                       'bg-blue-500': t.status === 'active',
+                       'bg-gray-500': t.status === 'pending' || !t.status
+                     }"></div>
+                <span class="text-gray-300 truncate">{{ t.description }}</span>
+              </div>
+              <span class="px-2 py-1 text-xs font-medium rounded-md flex-shrink-0"
+                    [class]="{
+                      'bg-green-500/20 text-green-300': t.status === 'completed',
+                      'bg-yellow-500/20 text-yellow-300': t.status === 'in-progress',
+                      'bg-blue-500/20 text-blue-300': t.status === 'active',
+                      'bg-gray-500/20 text-gray-300': t.status === 'pending' || !t.status
+                    }">
+                {{ t.status || 'pending' }}
+              </span>
+            </div>
+            
+            <div *ngIf="!p.tasks?.length" class="text-center py-4 text-gray-500">
+              <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              No tasks yet
+            </div>
+          </div>
 
-  <button
-    (click)="addProject()"
-    class="bg-green-600 text-white px-4 py-2 rounded-lg">
-    + Add New Project
+          <!-- Action Buttons -->
+          <!-- Action Buttons -->
+<div class="flex space-x-3 pt-4 border-t border-gray-700/50 mt-auto">
+  <button (click)="editProject(p)"
+    class="flex-1 group relative px-4 py-2.5 bg-gradient-to-r from-yellow-600/20 to-amber-600/20 text-yellow-300 rounded-lg border border-yellow-500/30 hover:border-yellow-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/10">
+    <span class="flex items-center justify-center space-x-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+      </svg>
+      <span class="text-sm">Edit</span>
+    </span>
   </button>
 
-</div>
+  
 
-  <div class="origin-bottom-right" >
-      <app-chat></app-chat>
+  <button (click)="deleteProject(p._id)"
+    class="flex-1 group relative px-4 py-2.5 bg-gradient-to-r from-red-600/20 to-pink-600/20 text-red-300 rounded-lg border border-red-500/30 hover:border-red-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10">
+    <span class="flex items-center justify-center space-x-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+      </svg>
+      <span class="text-sm">Delete</span>
+    </span>
+  </button>
+</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Project Button -->
+    <div class="text-center">
+      <button
+        (click)="addProject()"
+        class="group relative inline-flex items-center space-x-3 px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-500 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/25">
+        <svg class="w-6 h-6 transform group-hover:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        <span class="text-lg">Add New Project</span>
+        <span class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-xl"></span>
+      </button>
+    </div>
   </div>
 
-</div>
-
+  <!-- Chat Widget 
+  <div class="fixed bottom-6 right-6 z-40">
+    <app-chat></app-chat>
+  </div>
+  -->
+</main>

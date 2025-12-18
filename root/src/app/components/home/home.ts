@@ -105,9 +105,11 @@ startDay() {
 }
 
 
-  deleteProject(project: any) {
-    this.projectService.deleteProject(project._id).subscribe({
-      next: () => this.loadProjects(),     
+  deleteProject(projectId: any) {
+    this.projectService.deleteProject(projectId).subscribe({
+      next: () => {
+      this.projects = this.projects.filter(p => p._id !== projectId);
+    },     
       error: (err) => console.log(err)
     });
   }

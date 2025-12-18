@@ -3,6 +3,8 @@ import { ChatService } from '../../services/chat.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { Project } from '../../services/project.service';
+import { ActivatedRoute } from '@angular/router';
 
 
 interface User{
@@ -12,6 +14,14 @@ interface User{
   fullName: string;
 
  }
+
+ interface ProjectData{
+  
+  _id: string;
+  
+
+ }
+
 @Component({
   selector: 'app-chat',
   imports: [CommonModule, FormsModule],
@@ -25,18 +35,29 @@ interface User{
 export class Chat implements OnInit, AfterViewInit {
   @ViewChild('chatContainer') chatContainer !: ElementRef;
   user!: User;
+  project: ProjectData = { _id: '' };
+
   messages : any[] = [];
- constructor(private chatService: ChatService, private authService: AuthService ){};
+ constructor(private chatService: ChatService, private authService: AuthService, private projectService: Project, private route: ActivatedRoute){};
   
 
  
 
   ngOnInit() {
+      
+     this.route.queryParams.subscribe(params => {
+    this.project._id = params['id'];
+
+    if (this.project._id) {
+      this.chatService.connect(this.project._id);
+    }
+  });
 
       this.authService.getLoggedUser().subscribe(users =>{
         this.user = users;
       })
-      this.chatService.connect();
+    
+      
       this.chatService.getMessages().subscribe(msgs => {
       this.messages = msgs;
       this.scrollToBottom();
@@ -60,9 +81,14 @@ export class Chat implements OnInit, AfterViewInit {
     console.log("User not loaded yet");
     return;
   }
+  if (!this.project._id) {
+    console.log("Project is not assigned");
+    return;
+  }
     this.chatService.sendMessage({
     senderId: this.user._id,
     senderName: this.user.userName,
+    projectId: this.project._id,
     message: this.message,
     
 
@@ -76,7 +102,7 @@ export class Chat implements OnInit, AfterViewInit {
   }
 
   socketConnect() {
-  this.chatService.connect();
+  this.chatService.connect(this.project._id);
   alert("User connect to chat ")
 }
 

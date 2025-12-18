@@ -1,46 +1,124 @@
- 
- 
- @if(show){
- <div class="w-40 border-blue-950 bg-white rounded-xl" >
-  <div #chatContainer class="flex flex-col gap-2 p-4 max-h-[400px] overflow-y-auto">
+@if(show){
+<div class="fixed bottom-6 right-6 z-50 animate-slide-up">
+  <div class="relative group">
+    <!-- Glow effect -->
+    <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+    
+    <!-- Chat container -->
+    <div class="relative bg-gradient-to-br from-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-700/50 w-80 md:w-96">
+      
+      <!-- Chat header -->
+      <div class="p-4 border-b border-gray-700/50">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20">
+            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+          </div>
+          <h3 class="text-white font-bold text-lg">Team Chat</h3>
+        </div>
+      </div>
 
-  <div *ngFor="let m of messages"
-       [ngClass]="{
-         'self-end bg-blue-700 text-white': m.senderName === user?.userName,
-         'self-start bg-gray-300 text-black': m.senderName !== user?.userName
-       }"
-       class="px-4 py-2 rounded-xl max-w-[70%] w-fit break-words whitespace-pre-wrap">
+      <!-- Messages container -->
+      <div #chatContainer class="flex flex-col gap-3 p-4 max-h-80 overflow-y-auto">
+        <div *ngFor="let m of messages"
+             [ngClass]="{
+               'self-end': m.senderName === user?.userName,
+               'self-start': m.senderName !== user?.userName
+             }"
+             class="max-w-[85%] w-fit">
+          
+          <!-- Message bubble -->
+          <div class="relative">
+            <div class="absolute -inset-0.5 rounded-xl blur opacity-20 transition duration-300"
+                 [class]="{
+                   'bg-gradient-to-r from-blue-600 to-cyan-500': m.senderName === user?.userName,
+                   'bg-gradient-to-r from-gray-600 to-gray-500': m.senderName !== user?.userName
+                 }"></div>
+            <div class="relative px-4 py-3 rounded-xl"
+                 [class]="{
+                   'bg-gradient-to-r from-blue-600 to-cyan-500': m.senderName === user?.userName,
+                   'bg-gray-800/80 border border-gray-700/50': m.senderName !== user?.userName
+                 }">
+              <small class="block text-xs opacity-70 mb-1"
+                     [class]="{
+                       'text-blue-200': m.senderName === user?.userName,
+                       'text-gray-400': m.senderName !== user?.userName
+                     }">
+                {{ m.senderName }}
+              </small>
+              <p class="text-sm break-words whitespace-pre-wrap"
+                 [class]="{
+                   'text-white': m.senderName === user?.userName,
+                   'text-gray-200': m.senderName !== user?.userName
+                 }">
+                {{ m.message }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <small class="block text-xs opacity-70">{{ m.senderName }}</small>
-    <p class="text-sm">
-      {{ m.message }}
-    </p>
+      <!-- Message form and controls -->
+      <div class="p-4 border-t border-gray-700/50 bg-gray-900/30">
+        <form #myForm="ngForm" (ngSubmit)="onSubmit(myForm)" class="mb-3">
+          <div class="flex space-x-2">
+            <input 
+              type="text" 
+              class="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/30 transition-all duration-300"
+              id="msg" 
+              name="msg" 
+              placeholder="Enter message" 
+              required 
+              [(ngModel)]="message" 
+            />
+            <button 
+              class="px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              type="submit" 
+              [disabled]="!myForm.form.valid">
+              Send
+            </button>
+          </div>
+        </form>
 
+        <!-- Control buttons -->
+        <div class="flex flex-wrap gap-2">
+          <button 
+            (click)="formShow()"
+            class="flex-1 px-3 py-2 bg-gradient-to-r from-gray-700/50 to-gray-800/50 text-gray-300 rounded-lg border border-gray-700 hover:border-gray-600 hover:text-white transition-all duration-300">
+            Close chat
+          </button>
+          
+          <button 
+            (click)="socketDisconnect()"
+            class="flex-1 px-3 py-2 bg-gradient-to-r from-red-600/20 to-pink-600/20 text-red-300 rounded-lg border border-red-500/30 hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-all duration-300">
+            Disconnect
+          </button>
+          
+          <button 
+            (click)="socketConnect()"
+            class="flex-1 px-3 py-2 bg-gradient-to-r from-green-600/20 to-emerald-600/20 text-green-300 rounded-lg border border-green-500/30 hover:border-green-400/50 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-300">
+            Connect
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
-
 </div>
-
-
-
-<form  #myForm="ngForm" (ngSubmit)="onSubmit(myForm)">
-   <input type="text" class="form-control" id="msg" name="msg" placeholder="Enter message" required [(ngModel)]="message" class="border-blue-700" >
-   <button class=" bg-purple-500 text-black border border-blue-800 rounded-2xl m-1 p-1"  type="submit" [disabled]="!myForm.form.valid" >
-     Save Message
-   </button>
-</form>
-        <button (click)="formShow()" class="bg-blue-400 rounded-lg m-1 p-1 border border-black" >
-        Close chat
-      </button>
-      <button (click)="socketDisconnect()" class="bg-red-400 border border-black rounded-lg m-1 p-1" >
-        Disconnect
-      </button>
-      <button (click)="socketConnect()" class="bg-green-600 border border-black rounded-lg m-1 p-1" >
-        Connect
-      </button>
+}
+@else {
+<!-- Closed chat button -->
+<div class="fixed bottom-6 right-6 z-50">
+  <button 
+    (click)="formShow()"
+    class="group relative overflow-hidden bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25">
+    <span class="flex items-center space-x-3">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+      </svg>
+      <span>Need Help?</span>
+    </span>
+    <span class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
+  </button>
 </div>
- }
- @else{
-      <button (click)="formShow()" class="bg-red-400 text-black rounded-2xl border border-black" >
-        Need Help?
-      </button>
- }
+}
