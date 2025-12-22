@@ -107,8 +107,15 @@ router.post("/:projectId/tasks/:taskId/stop" , authMiddleware ,async(req,res) =>
     const project = await Project.findById(req.params.projectId);
     const task = project.tasks.id(req.params.taskId);
     const runningLog = task.logs.id(task.runningLogId);
+
+    const endTime = new Date();
+    const durationMs = endTime - runningLog.startTime;
+    const hrs = Math.floor(durationMs / 3600000);
+    const mins = Math.floor((durationMs % 3600000) / 60000);
+    const sec = Math.floor((durationMs % 60000) / 1000);
+
     runningLog.endTime = new Date();
-    runningLog.duration = (runningLog.endTime - runningLog.startTime)/1000;
+    runningLog.duration = `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
     task.isRunning = false;
     task.runningLogId = null;
 
@@ -131,5 +138,18 @@ router.get("/:projectId/tasks/:taskId/logs" , authMiddleware ,async (req,res) =>
         res.status(500).json({error: err.message});
     }
 })
+
+router.get("/:projectId/running-task", authMiddleware, async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.projectId);
+
+    const runningTask = project.tasks.find(t => t.isRunning);
+
+    res.json(runningTask || null);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 export default router;

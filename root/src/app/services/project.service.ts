@@ -48,6 +48,12 @@ getTaskLogs(projectId: string, taskId: string): Observable<any> {
   return this.http.get(`${this.API}/${projectId}/tasks/${taskId}/logs`);
   }
 
+getRunningTask(projectId: string): Observable<any> {
+
+     return this.http.get(`${this.API}/${projectId}/running-task`);
+
+}
+
 
 
 /*

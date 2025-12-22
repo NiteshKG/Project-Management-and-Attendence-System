@@ -202,7 +202,7 @@
                       <span>End: {{ log.endTime | date:'shortTime' }}</span>
                     </div>
                     <div class="text-cyan-400 font-mono">
-                      {{ log.duration/1000 }} sec
+                      {{ formatLog(log.duration) }} 
                     </div>
                   </div>
                 </div>

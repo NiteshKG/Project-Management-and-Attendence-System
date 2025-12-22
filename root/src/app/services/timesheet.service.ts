@@ -10,10 +10,12 @@ export class TimeSheet{
   startTask(task: any) {
     if (task.isRunning) return;
 
-    task.isRunning = true;
-    task.startTime = typeof task.startTime === "number"
-      ? task.startTime
-      : Date.now();
+    return {
+    ...task,
+    isRunning: true,
+    startTime: Date.now(),
+    totalTime: task.totalTime || 0
+  };
   }
 
   stopTask(task: any) {
@@ -22,30 +24,48 @@ export class TimeSheet{
     const now = Date.now();
     const diff = now - task.startTime;
 
-    task.totalTime += diff;
-
-    const newLog = {
-      startTime: task.startTime,
-      endTime: now,
-      duration: diff
-    };
-
-    const logs = task.logs || [];
-    logs.push(newLog);
-    task.logs = logs;
-
-    task.startTime = null;
-    task.isRunning = false;
+    return {
+    ...task,
+    isRunning: false,
+    startTime: null,
+    totalTime: (task.totalTime || 0) + diff,
+    logs: [
+      ...(task.logs || []),
+      {
+        startTime: task.startTime,
+        endTime: now,
+        duration: diff
+      }
+    ]
+  };
   }
+
+
+  checkPoint(task: any) {
+    if (!task.isRunning) return;
+
+    const now = Date.now();
+    const diff = now - task.startTime;
+
+    return {
+    ...task,
+   
+    totalTime: (task.totalTime || 0) + diff,
+    startTime: task.startTime,
+   
+  };
+  }
+
 
 
 
 
   getDisplayTime(task: any): number {
     if (task.isRunning) {
-      return task.elapsedTime + (Date.now() - task.startTime);
+      let total = task.totalTime || 0;
+      return total += (Date.now() - task.startTime);
     }
-    return task.elapsedTime;
+    return task.totalTime;
   }
 
   formatTime(ms: number) {

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewInit, QueryList, ViewChildren } from '@angular/core';
 import { ChatService } from '../../services/chat.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -33,12 +33,14 @@ interface User{
 
 
 export class Chat implements OnInit, AfterViewInit {
+  @ViewChildren('msssg') msssg !: QueryList<ElementRef>;
   @ViewChild('chatContainer') chatContainer !: ElementRef;
   user!: User;
   project: ProjectData = { _id: '' };
 
   messages : any[] = [];
- constructor(private chatService: ChatService, private authService: AuthService, private projectService: Project, private route: ActivatedRoute){};
+ constructor(private chatService: ChatService, private authService: AuthService, private projectService: Project,
+   private route: ActivatedRoute){};
   
 
  
@@ -70,6 +72,7 @@ export class Chat implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
       this.scrollToBottom();
+      this.msssg.changes.subscribe(this.scrollToBottom);
   }
 
   message: string = '';
@@ -93,6 +96,7 @@ export class Chat implements OnInit, AfterViewInit {
     
 
   });
+  
   console.log("Sending user:", this.user)
   this.message = '';
   
@@ -100,6 +104,8 @@ export class Chat implements OnInit, AfterViewInit {
   setTimeout(() => this.scrollToBottom(), 50); 
   
   }
+
+  
 
   socketConnect() {
   this.chatService.connect(this.project._id);
@@ -122,6 +128,8 @@ scrollToBottom() {
 
 
 
+
+
   formShow(){
     this.show = !this.show;
 
@@ -130,6 +138,11 @@ scrollToBottom() {
   }
 
   }
+
+  ngOnDestroy() {
+  this.chatService.disconnect();
+}
+
 
 
 }
