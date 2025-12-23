@@ -29,5 +29,10 @@ when user clicks on edit project from home page then it opens up the form html c
 in projects component UI below task there is a functionality to start timer and stop and it also shows the logs of previous timer actions respectively.So that it can track time active for each tasks.
 
 //chat-feature in project
+<video controls src="Project Management - Google Chrome 2025-12-22 19-38-36.mp4" title="Title"><video>
 
 In projects component , below is a chat button with stores message sent by user regarding specific project and along with message sent , the user's name along with the time at which it is sent is being displayed.
+
+## Project Demonstration
+
+[Watch the project demonstration video](./Project%20Management%20-%20Google%20Chrome%202025-12-22%2019-38-36.mp4)
