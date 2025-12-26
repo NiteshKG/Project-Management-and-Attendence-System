@@ -37,20 +37,27 @@ router.get("/:id", authMiddleware ,async(req,res) =>{
     }
 })
 
-router.put("/:id", authMiddleware ,async (req,res) =>{
-
-    try{
-   const project = await Project.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    {new: true}
-   );
-   res.json(project);
-
-    }catch(err){
-      res.status(500).json({error: err.message});
+router.put("/:id", authMiddleware, async (req, res) => {
+  try {
+    
+    if (req.body.tasks) {
+      req.body.tasks = req.body.tasks.map(task => ({
+        ...task,
+        totalTime: task.totalTime || 0  
+      }));
     }
-})
+    
+    const project = await Project.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    
+    res.json(project);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 router.delete("/:id", authMiddleware ,async (req,res) =>{
     try{

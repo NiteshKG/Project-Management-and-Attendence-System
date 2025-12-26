@@ -49,8 +49,16 @@ signupForm = this.formBuilder.group({
      
         error: (err) =>{
           console.log("Error:",err);
+          if (err.status === 400 && err.error?.msg) {
+          this.errorMessage.set(err.error.msg); 
+
+        } 
+          this.signupForm.reset();
+         setTimeout(() => {
+      
+          this.errorMessage.set(''); 
+          }, 3000);
           
-    this.signupForm.reset();
         }
 
         

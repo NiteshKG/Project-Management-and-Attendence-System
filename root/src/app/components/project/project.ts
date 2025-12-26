@@ -118,7 +118,18 @@ export class ProjectComponent implements OnInit {
   console.log('Project tasks:', tasks);
 
   tasks.forEach((task: any) => {
+
     const startTime = task.isRunning && task.startTime ? task.startTime : null;
+    let totalTime = task.totalTime || 0;
+
+   if (task.isRunning && task.startTime) {
+      const now = new Date();
+      const start = new Date(task.startTime);
+      const elapsed = now.getTime() - start.getTime();
+      totalTime += elapsed; 
+      console.log(`Task ${task.description} is running. Elapsed: ${elapsed}ms, Total: ${totalTime}ms`);
+    }
+
     this.tasks.push(
       this.fb.group({
         description: [task.description || "", Validators.required],
@@ -152,6 +163,65 @@ export class ProjectComponent implements OnInit {
     this.projectService.deleteProject(i);
   }
 
+ onSubmit() {
+  if (this.projectForm.invalid) {
+    this.projectForm.markAllAsTouched();
+    return;
+  }
+  
+  
+  this.tasks.controls.forEach(control => {
+    const task = control.value;
+    if (task.isRunning) {
+      const updated = this.timesheet.checkPoint(task);
+      control.patchValue(updated);
+    }
+  });
+
+  if (!this.user || !this.user._id) {
+    console.error('User not loaded');
+    return;
+  }
+
+  
+  const formValue = this.projectForm.value;
+  
+  
+  const tasks = this.tasks.controls.map(control => {
+    const task = control.value;
+    return {
+      description: task.description,
+      status: task.status,
+      isRunning: task.isRunning,
+      startTime: task.startTime,
+      totalTime: Number(task.totalTime) || 0, 
+      logs: task.logs || []
+    };
+  });
+
+  const payload = {
+    ...formValue,
+    user: this.user._id,
+    tasks: tasks
+  };
+
+  if (this.projectId !== null) {
+    this.projectService.updateProject(this.projectId, payload).subscribe(() => {
+      this.successMessage.set('Project Updated Successfully!');
+    });
+  } else {
+    this.projectService.createProject(payload).subscribe(() => {
+      this.successMessage.set('Project Created Successfully!');
+    });
+  }
+
+  setTimeout(() => {
+    this.successMessage.set('');
+    this.router.navigate(['/home']);
+  }, 1200);
+}
+
+  /*
   onSubmit() {
     if (this.projectForm.invalid) {
       this.projectForm.markAllAsTouched();
@@ -178,6 +248,7 @@ export class ProjectComponent implements OnInit {
   };
 
     if (this.projectId !== null) {
+      
       this.projectService.updateProject(this.projectId, payload).subscribe(() =>{
       this.successMessage.set('Project Updated Successfully!');
 
@@ -196,8 +267,27 @@ export class ProjectComponent implements OnInit {
     }, 1200);
   }
 
+*/
 
+startTimer(i: number) {
+  const formGroup = this.tasks.at(i);
+  
+  const updated = {
+    ...formGroup.value,
+    isRunning: true,
+    startTime: Date.now(), 
+    totalTime: formGroup.value.totalTime || 0
+  };
+  
+  formGroup.patchValue(updated);
+  
+  this.projectService.updateProject(this.projectId, this.projectForm.value).subscribe({
+    next: res => console.log('Timer started, backend updated', res),
+    error: err => console.error(err)
+  });
+}
 
+/*
   startTimer(i: number) {
   const formGroup = this.tasks.at(i);
  
@@ -210,7 +300,97 @@ export class ProjectComponent implements OnInit {
   });
   
 }
+*/
 
+stopTimer(i: number) {
+  const formGroup = this.tasks.at(i);
+  const currentTask = formGroup.value;
+  
+  console.log('STOP TIMER:', currentTask);
+  
+  
+  if (!currentTask.startTime) {
+    console.error('No startTime found for running task!');
+    return;
+  }
+  
+  
+  let startTimeMs: number;
+  if (typeof currentTask.startTime === 'string') {
+    startTimeMs = new Date(currentTask.startTime).getTime();
+    
+  } else if (typeof currentTask.startTime === 'number') {
+    startTimeMs = currentTask.startTime;
+  } else if (currentTask.startTime instanceof Date) {
+    startTimeMs = currentTask.startTime.getTime();
+  } else {
+    console.error('Invalid startTime type:', typeof currentTask.startTime, currentTask.startTime);
+    return;
+  }
+  
+  
+  const now = Date.now();
+  const elapsed = now - startTimeMs;
+  
+  
+  const previousTotal = Number(currentTask.totalTime) || 0;
+  const newTotalTime = previousTotal + elapsed;
+  
+ 
+  
+  
+  const updatedTask = {
+    ...currentTask,
+    isRunning: false,
+    startTime: null,
+    totalTime: newTotalTime,
+    logs: [
+      ...(currentTask.logs || []),
+      {
+        startTime: currentTask.startTime, 
+        endTime: new Date().toISOString(), 
+        duration: elapsed
+      }
+    ]
+  };
+  
+  console.log('Updated task:', updatedTask);
+  
+  
+  formGroup.patchValue(updatedTask);
+  
+  
+  const formValue = this.projectForm.value;
+  const tasksPayload = this.tasks.controls.map(control => {
+    const task = control.value;
+    return {
+      description: task.description,
+      status: task.status,
+      isRunning: task.isRunning,
+      startTime: task.startTime,
+      totalTime: Number(task.totalTime) || 0,
+      logs: task.logs || []
+    };
+  });
+  
+  const payload = {
+    ...formValue,
+    tasks: tasksPayload
+  };
+  
+  
+  
+  
+  this.projectService.updateProject(this.projectId, payload).subscribe({
+    next: (res) => {
+      console.log('End time:', res);
+      
+    },
+    error: (err) => console.error('Error stopping timer:', err)
+  });
+}
+
+/*
 stopTimer(i: number) {
   const formGroup = this.tasks.at(i);
   
@@ -223,16 +403,21 @@ stopTimer(i: number) {
     error: err => console.error(err)
   });
 }
-
+*/
 formatDisplay(i: number) {
   const task = this.tasks.at(i).value;
 
-  return this.timesheet.formatTime(
-   
-     this.timesheet.getDisplayTime(task)
-   
-    
-  );
+  let displayTime = task.totalTime || 0;
+  
+  // If task is currently running in the UI, add current elapsed
+  if (task.isRunning && task.startTime) {
+    const now = new Date();
+    const start = new Date(task.startTime);
+    const elapsed = now.getTime() - start.getTime();
+    displayTime += elapsed;
+  }
+  
+  return this.timesheet.formatTime(displayTime);
 }
 
 formatLog(i: number){

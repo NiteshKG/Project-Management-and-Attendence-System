@@ -1,6 +1,7 @@
 import express from "express";
 import Attendance from "../models/Attendance.js";
 import User from "../models/User.js";
+import Project from "../models/Project.js";
 import jwt from "jsonwebtoken";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
@@ -65,5 +66,24 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
+/*
+
+router.get("/projectshow", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user).select("-password");
+
+   
+    const projects = await Project.find({
+      user: req.user,
+      
+    });
+
+    res.json(projects);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+});
+*/
 
 export default router;

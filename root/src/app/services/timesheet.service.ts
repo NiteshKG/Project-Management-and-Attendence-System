@@ -19,26 +19,42 @@ export class TimeSheet{
   }
 
   stopTask(task: any) {
-    if (!task.isRunning) return;
+  if (!task.isRunning) return task;
 
-    const now = Date.now();
-    const diff = now - task.startTime;
-
-    return {
+  const now = Date.now();
+  
+  
+  let startTimeMs: number;
+  if (typeof task.startTime === 'string') {
+    startTimeMs = new Date(task.startTime).getTime();
+  } else if (typeof task.startTime === 'number') {
+    startTimeMs = task.startTime;
+  } else {
+    console.error('Invalid startTime in timesheet:', task.startTime);
+    return task;
+  }
+  
+  const elapsed = now - startTimeMs;
+  const previousTotal = Number(task.totalTime) || 0;
+  const newTotal = previousTotal + elapsed;
+  
+  
+  
+  return {
     ...task,
     isRunning: false,
     startTime: null,
-    totalTime: (task.totalTime || 0) + diff,
+    totalTime: newTotal,
     logs: [
       ...(task.logs || []),
       {
-        startTime: task.startTime,
-        endTime: now,
-        duration: diff
+        startTime: task.startTime, 
+        endTime: new Date(), 
+        duration: elapsed
       }
     ]
   };
-  }
+}
 
 
   checkPoint(task: any) {

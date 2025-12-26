@@ -48,6 +48,17 @@ export class AuthService{
   });
 }
 
+/*
+getCurrentUserProject(): Observable<any | null> {
+  const token = localStorage.getItem('token');
+  if (!token) return of(null);
+
+  return this.http.get<any>('http://localhost:5000/api/attendance/projectshow', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+  */
+
 getLoggedUser(): Observable<any | null> {
   const token = localStorage.getItem('token');
   if (!token) return of(null);

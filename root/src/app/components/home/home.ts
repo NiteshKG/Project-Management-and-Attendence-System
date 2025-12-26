@@ -5,11 +5,11 @@ import { Router } from '@angular/router';
 import { AttendanceService } from '../../services/attendance.service';
 import { CommonModule } from '@angular/common';
 import { Project } from '../../services/project.service';
-import { Chat } from '../chat/chat';
+
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule,Chat],
+  imports: [CommonModule],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -18,36 +18,65 @@ export class Home implements OnInit,OnDestroy {
 projects: any[] = [];
 
   constructor(private auth: AuthService, private router: Router,
-     private attendance: AttendanceService, private projectService: Project ){}
-  loggedName: string = '';
-  timerText = signal('00:00:00');
+     private attendance: AttendanceService, private projectService: Project ){
+      
+     }
+  loggedName = signal('');
+  timerText = signal('00:00:00');  
   dayStarted = signal(false);
   private intervalId: any;
 
+   
+
   ngOnInit() {
- this.auth.getCurrentUser().subscribe(res => {
-    if (res.user) this.loggedName = res.user.fullName;
 
+     
+    
+    this.loadUserData();
+    this.loadProjects();
+    }   
 
-    if (res.runningAttendance) {
-      this.dayStarted.set(true);
-      const startTime = new Date(res.runningAttendance.startTime).getTime();
-      this.startTimer(startTime);
-    }
-  });
+loadUserData() {
 
-this.loadProjects();
+   // this.loadProjects();
+    this.auth.getCurrentUser().subscribe({
+      next: (res) => {
+        if (res.user) {
+          this.loggedName.set(res.user.fullName);
+         // this.cdr.detectChanges();
+        }
 
-}
+        if (res.runningAttendance) {
+          this.dayStarted.set(true);
+          const startTime = new Date(res.runningAttendance.startTime).getTime();
+          this.startTimer(startTime);
+        }
+        
+      },
+      error: (err) => {
+        console.error('Error loading user data:', err);
+        
+        
+        //this.loadProjects();
+      }
+    });
+  }
 
 loadProjects(){
+
+  
+
+   
+
   this.projectService.getProjects().subscribe({
     next: (res) =>{
       this.projects = res;
+     // this.cdr.detectChanges();
       console.log("Projects: ",this.projects);
     },
     error: (err) => console.log(err)
   })
+    
 }
 
 startDay() {
@@ -66,7 +95,7 @@ startDay() {
       console.log("Day ended:", res);
       this.dayStarted.set(false);
       this.timerText.set('00:00:00');
-      clearInterval(this.intervalId);
+     // clearInterval(this.intervalId);
     });
   }
 
