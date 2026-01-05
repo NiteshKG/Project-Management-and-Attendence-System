@@ -333,6 +333,24 @@ router.get("/my-attendance", authMiddleware, async (req, res) => {
         }
       }
     });
+
+  router.get('/attendance/monthly', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  const { month, year } = req.query;
+  
+  const startDate = new Date(year, month, 1);
+  const endDate = new Date(year, month + 1, 0);
+  
+  const attendance = await Attendance.find({
+    user: userId,
+    date: {
+      $gte: startDate,
+      $lte: endDate
+    }
+  });
+  
+  res.json(attendance);
+});
     
     // Format the data - one entry per day
     const formattedAttendance = Object.keys(groupedByDate).map(dateString => {

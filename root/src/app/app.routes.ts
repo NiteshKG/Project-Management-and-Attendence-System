@@ -22,7 +22,7 @@ export const routes: Routes = [
  { path: 'trash', component: Trash  },
   { path: 'home', component: Home , 
      children: [
-      { path: '', redirectTo: 'projects', pathMatch: 'full' },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: Dashboard },
       { path: 'timesheet', component: Timesheet },
       { path: 'attendance', component: Attendance },

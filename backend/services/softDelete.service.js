@@ -178,7 +178,7 @@ async getDeletedProjects(userId) {
       { user: userString },
       { manager: userString },
       { members: userString },
-      { deletedBy: userString } // ✅ ADD THIS LINE
+      { deletedBy: userString } 
     ],
     isDeleted: true,
     willPermanentlyDelete: { $gt: new Date() }

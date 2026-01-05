@@ -27,6 +27,15 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
       </svg>
     </div>
+    <button 
+      (click)="goBack()"
+      type="button"
+      class="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors"
+      title="Close">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
   </div>
 
   <!-- Horizontal Form Layout -->
@@ -68,7 +77,6 @@
             <select
               formControlName="manager"
               class="w-full px-3 py-2 bg-white border border-blue-200 rounded text-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-500/30 focus:border-blue-400 text-sm">
-
               <option value="" disabled class="bg-white">Select manager</option>
               <option *ngFor="let user of allUsers" [value]="user._id">
                 {{ user.fullName }}
@@ -77,30 +85,74 @@
           </div>
         </div>
 
-        <!-- Assign Users -->
+        <!-- Assign Users Section - UPDATED -->
         <div>
-          <label class="block text-blue-700 font-medium mb-1 text-xs">Assign Users</label>
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-blue-700 font-medium text-xs">Assign Team Members</label>
+            <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+              {{ membersCount }} selected
+            </span>
+          </div>
           
-          <div class="space-y-1 max-h-24 overflow-y-auto p-2 bg-blue-50 rounded border border-blue-200 mb-2">
-            <label *ngFor="let user of allUsers" class="flex items-center space-x-2 text-blue-800 hover:bg-blue-100 p-1 rounded text-xs">
-              <input
-                type="checkbox"
-                [value]="user._id"
-                (change)="toggleUser(user._id, $event)"
-                class="accent-blue-500 w-3 h-3"
-              />
-              <span class="truncate">{{ user.fullName }}</span>
+          <!-- Search Users -->
+          <div class="mb-2">
+            <input 
+              type="text" 
+              placeholder="Search users..." 
+              (input)="filterUsers($event)"
+              class="w-full px-3 py-1.5 text-sm border border-blue-200 rounded bg-white text-blue-900 placeholder-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500/30"
+            />
+          </div>
+          
+          <!-- Users List with Checkboxes -->
+          <div class="space-y-1 max-h-40 overflow-y-auto p-2 bg-blue-50 rounded border border-blue-200">
+            <div *ngIf="filteredUsers.length === 0" class="text-center py-2">
+              <p class="text-blue-500 text-xs">No users found</p>
+            </div>
+            
+            <label *ngFor="let user of filteredUsers" 
+                   class="flex items-center space-x-2 hover:bg-blue-100 p-2 rounded transition-colors cursor-pointer">
+              <div class="flex items-center space-x-3 flex-1">
+                <!-- Checkbox -->
+                <input
+                  type="checkbox"
+                  [checked]="isUserSelected(user._id)"
+                  (change)="toggleUser(user._id, $event)"
+                  class="accent-blue-500 w-4 h-4"
+                />
+                
+                <!-- User Avatar -->
+                <div class="w-6 h-6 rounded-full bg-blue-200 flex items-center justify-center text-blue-800 text-xs font-semibold">
+                  {{ getInitials(user.fullName) }}
+                </div>
+                
+                <!-- User Info -->
+                <div class="flex-1 min-w-0">
+                  <p class="text-blue-800 font-medium text-sm truncate">{{ user.fullName }}</p>
+                  <p class="text-blue-600 text-xs truncate">{{ user.userName }}</p>
+                </div>
+              </div>
+              
+              <!-- Manager Badge -->
+              <span *ngIf="projectForm.value.manager === user._id" 
+                    class="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-600 text-white">
+                Manager
+              </span>
             </label>
           </div>
-
-          <!-- Assigned Users Display -->
-          <div *ngIf="projectForm.value.members?.length" class="mt-2">
-            <p class="text-xs text-blue-600 mb-1">Assigned Users</p>
+          
+          <!-- Selected Users Summary -->
+          <div *ngIf="membersCount > 0" class="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
+            <p class="text-xs text-blue-600 font-medium mb-1">Selected Members ({{ membersCount }})</p>
             <div class="flex flex-wrap gap-1">
-              <span
-                *ngFor="let uid of projectForm.value.members"
-                class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs border border-blue-200 truncate max-w-[100px]">
+              <span *ngFor="let uid of members" 
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
                 {{ getUserName(uid) }}
+                <button (click)="removeUser(uid)" 
+                        type="button"
+                        class="ml-1.5 text-blue-600 hover:text-blue-800">
+                  ×
+                </button>
               </span>
             </div>
           </div>
@@ -121,22 +173,20 @@
           </span>
         </div>
 
-        <!-- Tasks List Container - Very compact -->
+        <!-- Tasks List Container -->
         <div formArrayName="tasks" class="space-y-2 flex-1 overflow-y-auto pr-1 max-h-[150px]">
           <div *ngFor="let task of tasks.controls; let i = index"
                [formGroupName]="i"
                class="bg-white p-2 rounded border border-blue-200 hover:border-blue-300">
             
-            <!-- Task Header - Compact -->
             <div class="flex items-center justify-between mb-1">
               <div class="flex items-center space-x-1">
                 <div class="w-5 h-5 rounded bg-blue-100 flex items-center justify-center">
-                  
+                  <!-- Task icon placeholder -->
                 </div>
                 <span class="text-blue-800 font-medium text-xs">Task</span>
               </div>
               
-              <!-- Remove Task Button -->
               <button 
                 (click)="removeTask(i)"
                 type="button"
@@ -147,15 +197,12 @@
               </button>
             </div>
 
-            <!-- Task Inputs - Compact -->
             <div class="space-y-1">
-              <!-- Task Description -->
               <input
                 class="w-full px-2 py-1 bg-white border border-blue-200 rounded text-blue-900 placeholder-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500/30 focus:border-blue-400 text-xs"
                 formControlName="description"
                 placeholder="Task description" />
               
-              <!-- Task Status -->
               <select
                 class="w-full px-2 py-1 bg-white border border-blue-200 rounded text-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-500/30 focus:border-blue-400 text-xs"
                 formControlName="status">
@@ -166,7 +213,6 @@
             </div>
           </div>
           
-          <!-- Empty State - Compact -->
           <div *ngIf="tasks.controls.length === 0" class="text-center py-4 border border-dashed border-blue-200 rounded bg-blue-50">
             <svg class="w-6 h-6 mx-auto mb-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
@@ -175,7 +221,6 @@
           </div>
         </div>
 
-        <!-- Add Task Button - Compact -->
         <button
           type="button"
           (click)="addTask()"
@@ -193,7 +238,8 @@
   <div class="pt-3 border-t border-blue-200 mt-3">
     <button
       type="submit"
-      class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 text-sm"
+      [disabled]="projectForm.invalid"
+      class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
       (click)="onSubmit()">
       <span class="flex items-center justify-center space-x-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,7 +250,7 @@
     </button>
   </div>
 
-  <!-- Chat Component - Compact -->
+  <!-- Chat Component -->
   <div class="mt-3">
     <app-chat></app-chat>
   </div>

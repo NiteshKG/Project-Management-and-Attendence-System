@@ -1,1 +1,295 @@
-<p>dashboard works!</p>
+<!-- dashboard.html -->
+<div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+  <!-- Welcome Header -->
+  <div class="mb-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div>
+        <h1 class="text-3xl md:text-4xl font-bold mb-2">
+          <span class="bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+            Dashboard Overview
+          </span>
+        </h1>
+        <p class="text-blue-600">Welcome back! Here's your performance summary</p>
+      </div>
+      
+      <!-- Date & Time -->
+      <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200 shadow-sm">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 rounded-lg bg-blue-100">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="text-blue-800 font-medium">{{ currentDate | date:'fullDate' }}</div>
+            <div class="text-blue-600 text-sm">{{ currentTime | date:'shortTime' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Today's Attendance Status -->
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="text-blue-600 text-sm mb-1">Today's Status</p>
+          <h3 class="text-2xl font-bold text-blue-800" [class]="getTodayStatusColor()">
+            {{ getTodayStatusText() }}
+          </h3>
+        </div>
+        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 border border-blue-300 flex items-center justify-center">
+          <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="flex items-center text-blue-600 text-sm">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+        </svg>
+        {{ todayHours }} hours worked
+      </div>
+    </div>
+
+    <!-- Total Projects -->
+    <div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="text-green-600 text-sm mb-1">Total Projects</p>
+          <h3 class="text-2xl font-bold text-green-800">{{ totalProjects }}</h3>
+        </div>
+        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 border border-green-300 flex items-center justify-center">
+          <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="flex items-center text-green-600 text-sm">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+        </svg>
+        {{ activeProjects }} active
+      </div>
+    </div>
+
+    <!-- Monthly Attendance -->
+    <div class="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="text-purple-600 text-sm mb-1">Monthly Attendance</p>
+          <h3 class="text-2xl font-bold text-purple-800">{{ presentDays }}/{{ totalWorkingDays }}</h3>
+        </div>
+        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-violet-100 border border-purple-300 flex items-center justify-center">
+          <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="text-purple-600 text-sm">
+        {{ attendancePercentage }}% attendance rate
+      </div>
+    </div>
+
+    <!-- Total Hours This Month -->
+    <div class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="text-amber-600 text-sm mb-1">Monthly Hours</p>
+          <h3 class="text-2xl font-bold text-amber-800">{{ formatHours(totalHours) }}</h3>
+        </div>
+        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-300 flex items-center justify-center">
+          <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="text-amber-600 text-sm">
+        {{ avgDailyHours }}h avg per day
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts and Analytics Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Attendance Chart -->
+    <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-sm p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h3 class="text-xl font-bold text-blue-800">Attendance Overview</h3>
+          <p class="text-blue-600 text-sm">{{ monthNames[currentMonth - 1] }} {{ currentYear }}</p>
+        </div>
+        <div class="flex space-x-2">
+          <button (click)="previousMonth()" class="p-2 hover:bg-blue-50 rounded-lg text-blue-500">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+          </button>
+          <button (click)="nextMonth()" class="p-2 hover:bg-blue-50 rounded-lg text-blue-500">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Chart Container -->
+      <div class="h-64">
+        <canvas #attendanceChart></canvas>
+      </div>
+      
+      <!-- Legend -->
+      <div class="flex flex-wrap gap-4 mt-6">
+        <div class="flex items-center">
+          <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+          <span class="text-blue-600 text-sm">Present</span>
+        </div>
+        <div class="flex items-center">
+          <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+          <span class="text-blue-600 text-sm">Half Day</span>
+        </div>
+        <div class="flex items-center">
+          <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+          <span class="text-blue-600 text-sm">Absent</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Status Chart -->
+    <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-sm p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h3 class="text-xl font-bold text-blue-800">Project Status</h3>
+          <p class="text-blue-600 text-sm">Tasks distribution across projects</p>
+        </div>
+        <div class="text-blue-600 text-sm">
+          {{ totalTasks }} total tasks
+        </div>
+      </div>
+      
+      <!-- Doughnut Chart Container -->
+      <div class="h-64">
+        <canvas #projectChart></canvas>
+      </div>
+      
+      <!-- Project Stats -->
+      <div class="grid grid-cols-2 gap-4 mt-6">
+        <div class="p-3 rounded-lg bg-blue-50 border border-blue-100">
+          <div class="text-blue-600 text-sm">Active Projects</div>
+          <div class="text-blue-800 font-bold">{{ activeProjects }}</div>
+        </div>
+        <div class="p-3 rounded-lg bg-green-50 border border-green-100">
+          <div class="text-green-600 text-sm">Completed Tasks</div>
+          <div class="text-green-800 font-bold">{{ completedTasks }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity & Quick Actions -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Recent Activity -->
+   <!-- Team Members -->
+<div class="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-sm p-6">
+  <h3 class="text-xl font-bold text-blue-800 mb-6">Team Members</h3>
+  
+  <!-- Loading State -->
+  <div *ngIf="isLoadingTeamMembers" class="py-8 text-center">
+    <div class="flex justify-center items-center space-x-3">
+      <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <span class="text-blue-600">Loading team members...</span>
+    </div>
+  </div>
+  
+  <!-- Team Members Grid -->
+  <div *ngIf="!isLoadingTeamMembers && teamMembers.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div *ngFor="let member of teamMembers" 
+         class="p-4 rounded-xl border border-blue-200 hover:border-blue-300 transition-all hover:shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50">
+      <div class="flex items-center space-x-4">
+        <!-- Avatar -->
+        <div class="relative">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
+            {{ member.fullName?.charAt(0) || 'U' }}
+          </div>
+          
+        </div>
+        
+        <!-- Member Info -->
+        <div class="flex-1">
+          <h4 class="font-bold text-blue-800">{{ member.fullName }}</h4>
+          <p class="text-blue-600 text-sm">{{ member.userName }}</p>
+          <div class="flex items-center justify-between mt-2">
+            <span class="px-2 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-700 border border-blue-200">
+              {{ member.address }}
+            </span>
+           
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Empty State -->
+  <div *ngIf="!isLoadingTeamMembers && teamMembers.length === 0" 
+       class="text-center py-8 border-2 border-dashed border-blue-300 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+      <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0a4 4 0 01-4 4m4-4a4 4 0 00-4-4m4 4h-2m-6 0a4 4 0 01-4-4m4 4a4 4 0 00-4 4m0 0h2"></path>
+      </svg>
+    </div>
+    <h4 class="text-lg font-bold text-blue-800 mb-2">No Team Members</h4>
+    <p class="text-blue-600 text-sm">No team members found in your workspace</p>
+  </div>
+</div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200 shadow-sm p-6">
+      <h3 class="text-xl font-bold text-blue-800 mb-6">Quick Actions</h3>
+      
+      <div class="space-y-4">
+      
+
+        <button (click)="navigateToProjects()"
+                class="w-full p-4 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-all flex items-center space-x-3">
+          <div class="p-2 rounded-lg bg-blue-100">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+          </div>
+          <div class="text-left">
+            <div class="font-medium text-blue-800">Manage Projects</div>
+            <div class="text-blue-600 text-sm">View and edit projects</div>
+          </div>
+        </button>
+
+        <button (click)="navigateToAttendance()"
+                class="w-full p-4 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-all flex items-center space-x-3">
+          <div class="p-2 rounded-lg bg-purple-100">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+          </div>
+          <div class="text-left">
+            <div class="font-medium text-purple-800">View Attendance</div>
+            <div class="text-purple-600 text-sm">Check your attendance records</div>
+          </div>
+        </button>
+
+        <button (click)="navigateToTimesheet()"
+                class="w-full p-4 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-all flex items-center space-x-3">
+          <div class="p-2 rounded-lg bg-amber-100">
+            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="text-left">
+            <div class="font-medium text-amber-800">Time Tracking</div>
+            <div class="text-amber-600 text-sm">Go to timesheet</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -27,11 +27,13 @@ export class Trash implements OnInit {
     // Load summary first
     this.trashService.getTrashSummary().subscribe(summary => {
       this.summary = summary;
+      console.log(summary);
     });
 
     // Load deleted projects
     this.trashService.getDeletedProjects().subscribe(projects => {
       this.deletedProjects = projects;
+      console.log("Project deleted: ", projects);
     });
 
     // Load deleted tasks
