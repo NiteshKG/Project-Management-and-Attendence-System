@@ -28,8 +28,10 @@ updateProject(id: string, data: any): Observable<any> {
   return this.http.put(`${this.API}/${id}`, data);
 }
 
-deleteProject(id: string): Observable<any> {
-  return this.http.delete(`${this.API}/${id}`);
+deleteProject(id: string,  reason?: string): Observable<any> {
+  return this.http.delete(`${this.API}/${id}` , {
+    body: { reason: reason || '' }
+  });
 }
 
 addTask(projectId: string, data: any): Observable<any> {

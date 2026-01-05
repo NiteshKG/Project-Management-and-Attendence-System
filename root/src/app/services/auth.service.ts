@@ -66,6 +66,13 @@ getLoggedUser(): Observable<any | null> {
   return this.http.get<any>('http://localhost:5000/api/auth/loggeduser');
 }
 
+getAllUsers() {
+  return this.http.get<any[]>(
+    'http://localhost:5000/api/auth/users'
+  );
+}
+
+
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -74,6 +81,8 @@ getLoggedUser(): Observable<any | null> {
   isLoggedIn(): boolean {
     return !!localStorage.getItem('token');
   }
+
+
 
 
 

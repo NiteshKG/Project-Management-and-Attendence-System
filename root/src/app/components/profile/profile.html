@@ -1,0 +1,36 @@
+<!-- profile.component.html -->
+<div class="profile-container">
+  <div class="profile-card">
+    <!-- Avatar Section -->
+    <div class="avatar-section">
+      <div class="avatar-circle">
+        <div class="avatar-initials">
+          {{ getInitials() }}
+        </div>
+      </div>
+    </div>
+
+    <!-- User Info Section -->
+    <div class="user-info-section">
+      <div class="info-row">
+        <h2 class="user-name">{{ loggedName() }}</h2>
+        <span class="status-badge active">
+          <span class="status-dot"></span>
+          Active
+        </span>
+      </div>
+      
+      <div class="info-item">
+        <i class="fas fa-envelope icon"></i>
+        <span class="label">Email:</span>
+        <span class="value">{{ email() }}</span>
+      </div>
+      
+      <div class="info-item" *ngIf="address()">
+        <i class="fas fa-map-marker-alt icon"></i>
+        <span class="label">Address:</span>
+        <span class="value">{{ address() }}</span>
+      </div>
+    </div>
+  </div>
+</div>

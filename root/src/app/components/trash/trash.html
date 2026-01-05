@@ -1,0 +1,49 @@
+<!-- trash.component.html -->
+<div class="trash-container">
+  <h2>Trash</h2>
+  
+  <div class="summary-card" *ngIf="!loading">
+    <p>Total items in trash: {{summary.total}}</p>
+    <p>Projects: {{summary.projects}}</p>
+    <p>Tasks: {{summary.tasks}}</p>
+    <button (click)="emptyTrash()" class="btn btn-danger">Empty Trash</button>
+  </div>
+
+  <div *ngIf="loading">Loading trash items...</div>
+
+  <!-- Deleted Projects -->
+  <div class="section" *ngIf="deletedProjects.length > 0">
+    <h3>Deleted Projects</h3>
+    <div *ngFor="let project of deletedProjects" class="trash-item">
+      <div class="item-info">
+        <h4>{{project.name}}</h4>
+        <p>Deleted on: {{project.deletedAt | date}}</p>
+        <p>Will be permanently deleted on: {{project.willPermanentlyDelete | date}}</p>
+        <p *ngIf="project.deletedReason">Reason: {{project.deletedReason}}</p>
+      </div>
+      <button (click)="restoreProject(project._id)" class="btn btn-primary">
+        Restore
+      </button>
+    </div>
+  </div>
+
+  <!-- Deleted Tasks -->
+  <div class="section" *ngIf="deletedTasks.length > 0">
+    <h3>Deleted Tasks</h3>
+    <div *ngFor="let task of deletedTasks" class="trash-item">
+      <div class="item-info">
+        <h4>{{task.title}}</h4>
+        <p>Project: {{task.projectName}}</p>
+        <p>Deleted on: {{task.deletedAt | date}}</p>
+        <p>Will be permanently deleted on: {{task.willPermanentlyDelete | date}}</p>
+      </div>
+      <button (click)="restoreTask(task.projectId, task._id)" class="btn btn-primary">
+        Restore
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && deletedProjects.length === 0 && deletedTasks.length === 0">
+    <p>Trash is empty</p>
+  </div>
+</div>

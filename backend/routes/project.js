@@ -1,6 +1,8 @@
 import express from "express";
 import Project from "../models/Project.js";
+import Attendance from "../models/Attendance.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
+import softDeleteService from "../services/softDelete.service.js"; 
 
 const router = express.Router();
 
@@ -14,14 +16,28 @@ router.post("/", authMiddleware , async (req,res) =>{
     }
 })
 
-router.get("/", authMiddleware ,async (req,res) =>{
-    try{
-     const projects = await Project.find({user: req.user});
-     res.json(projects);
-    }catch(err){
-        res.status(500).json({error: err.message });
-    }
-})
+router.get("/", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user;
+
+    const projects = await Project.find({
+      $or: [
+        { manager: userId },
+        { members: userId }
+      ],
+      isDeleted: false
+      
+    })
+    .populate("members", "fullName userName")
+    .populate("manager", "fullName userName");
+
+    res.json(projects);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 router.get("/:id", authMiddleware ,async(req,res) =>{
     try{
@@ -29,7 +45,13 @@ router.get("/:id", authMiddleware ,async(req,res) =>{
     const project = await Project.findOne({
         _id: req.params.id,
         userId: req.UserId,
+        isDeleted: false
+       
+       
     });
+
+     
+
     res.json(project);
 
     }catch(err){
@@ -39,36 +61,116 @@ router.get("/:id", authMiddleware ,async(req,res) =>{
 
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
+    const updateData = {};
+
+    // Basic fields
+    if (req.body.name !== undefined) updateData.name = req.body.name;
+    if (req.body.manager !== undefined) updateData.manager = req.body.manager;
+    if (req.body.deadline !== undefined) updateData.deadline = req.body.deadline;
+
     
-    if (req.body.tasks) {
-      req.body.tasks = req.body.tasks.map(task => ({
+    if (Array.isArray(req.body.members)) {
+      updateData.members = req.body.members;
+    }
+
+    // Tasks (keep your existing logic)
+    if (Array.isArray(req.body.tasks)) {
+      updateData.tasks = req.body.tasks.map(task => ({
         ...task,
-        totalTime: task.totalTime || 0  
+        totalTime: task.totalTime || 0
       }));
     }
-    
+
     const project = await Project.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
+      
       { new: true }
     );
-    
+
     res.json(project);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
-router.delete("/:id", authMiddleware ,async (req,res) =>{
-    try{
-     await Project.findByIdAndDelete(req.params.id);
-     res.json({msg: "Project deleted"});
 
-    }catch(err){
-       res.status(500).json({error: err.message});
+// In your project routes - fix the DELETE route
+router.delete("/:id", authMiddleware, async (req, res) => {
+    try {
+        console.log('DELETE request for project:', req.params.id);
+        console.log('User making request:', req.user);
+        
+        // First, find the project WITHOUT any user restrictions
+        const project = await Project.findById(req.params.id);
+        
+        if (!project) {
+            console.log('Project not found in database');
+            return res.status(404).json({ 
+                success: false,
+                error: "Project not found" 
+            });
+        }
+        
+        // Check if user has permission (is owner, manager, or member)
+        const userId = req.user.id || req.user._id || req.user;
+        const userString = userId.toString();
+        
+        const isOwner = project.user?.toString() === userString;
+        const isManager = project.manager?.toString() === userString;
+        const isMember = project.members?.some(member => 
+            member?.toString() === userString
+        );
+        
+        console.log('Permission check:', { isOwner, isManager, isMember });
+        console.log('Project user:', project.user);
+        console.log('Project manager:', project.manager);
+        console.log('Project members:', project.members);
+        console.log('Request user ID:', userString);
+        
+        if (!isOwner && !isManager && !isMember) {
+            console.log('User has no permission to delete this project');
+            return res.status(403).json({ 
+                success: false,
+                error: "You don't have permission to delete this project" 
+            });
+        }
+        
+        // Perform soft delete
+        project.isDeleted = true;
+        project.deletedAt = new Date();
+        project.deletedBy = userId;
+        project.willPermanentlyDelete = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        
+        // Add reason if provided
+        if (req.body?.reason) {
+            project.deletedReason = req.body.reason;
+        }
+        
+        await project.save();
+        
+        console.log('Project soft deleted successfully');
+        
+        res.json({
+            success: true,
+            message: "Project moved to trash",
+            project: {
+                _id: project._id,
+                name: project.name,
+                deletedAt: project.deletedAt,
+                restoreAvailableUntil: project.willPermanentlyDelete
+            }
+        });
+
+    } catch (err) {
+        console.error('Delete error:', err);
+        res.status(500).json({ 
+            success: false,
+            error: err.message 
+        });
     }
-})
-
+});
 router.post("/:projectId/tasks", authMiddleware ,async (req,res) =>{
     try{
      const project = await Project.findById(req.params.projectId);
@@ -81,6 +183,7 @@ router.post("/:projectId/tasks", authMiddleware ,async (req,res) =>{
 
      };
      project.tasks.push(newTask);
+
      await project.save();
      res.json(project);
 
@@ -89,6 +192,7 @@ router.post("/:projectId/tasks", authMiddleware ,async (req,res) =>{
     }
 })
 
+/*
 router.post("/:projectId/tasks/:taskId/start", authMiddleware ,async (req,res) =>{
     try{
     const project = await Project.findById(req.params.projectId);
@@ -108,7 +212,38 @@ router.post("/:projectId/tasks/:taskId/start", authMiddleware ,async (req,res) =
         res.status(500).json({error: err.message});
     }
 })
+    */
 
+router.post("/:projectId/tasks/:taskId/start", authMiddleware, async (req, res) => {
+  const project = await Project.findById(req.params.projectId);
+  const task = project.tasks.id(req.params.taskId);
+
+  
+  const alreadyRunning = task.logs.find(
+    l => l.user.toString() === req.user && !l.endTime
+  );
+
+  if (alreadyRunning) {
+    return res.status(400).json({ message: "Task already running" });
+  }
+
+  task.logs.push({
+    user: req.user,
+    startTime: new Date(),
+    endTime: null,
+    durationMs: 0
+  });
+
+  await project.save();
+
+  
+  await startAttendanceIfNotRunning(req.user);
+
+  res.json({ message: "Task timer started" });
+});
+
+
+/*
 router.post("/:projectId/tasks/:taskId/stop" , authMiddleware ,async(req,res) =>{
     try{
     const project = await Project.findById(req.params.projectId);
@@ -133,7 +268,33 @@ router.post("/:projectId/tasks/:taskId/stop" , authMiddleware ,async(req,res) =>
     }catch(err){
         res.status(500).json({error: err.message});
     }
-})
+})    
+    */
+
+router.post("/:projectId/tasks/:taskId/stop", authMiddleware, async (req, res) => {
+  const project = await Project.findById(req.params.projectId);
+  const task = project.tasks.id(req.params.taskId);
+
+  const log = task.logs.find(
+    l => l.user.toString() === req.user && !l.endTime
+  );
+
+  if (!log) {
+    return res.status(400).json({ message: "No running timer found" });
+  }
+
+  const end = new Date();
+  log.endTime = end;
+  log.durationMs = end - log.startTime;
+
+  await project.save();
+
+  
+  await stopAttendanceIfNoRunningTasks(req.user);
+
+  res.json({ message: "Task timer stopped" });
+});
+
 
 router.get("/:projectId/tasks/:taskId/logs" , authMiddleware ,async (req,res) =>{
     try{
@@ -157,6 +318,175 @@ router.get("/:projectId/running-task", authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+
+router.get("/trash/projects", authMiddleware, async (req, res) => {
+    try {
+        console.log('=== TRASH PROJECTS ROUTE ===');
+        console.log('User ID from request:', req.user);
+        console.log('User ID type:', typeof req.user);
+        
+        const deletedProjects = await softDeleteService.getDeletedProjects(req.user);
+        
+        console.log('Sending response with', deletedProjects.length, 'projects');
+        
+        res.json(deletedProjects);
+    } catch (err) {
+        console.error('Error in trash/projects:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+router.get("/trash/tasks", authMiddleware, async (req, res) => {
+    try {
+        // Get all active projects where user has access
+        const projects = await Project.find({
+            $or: [
+                { manager: req.user },
+                { members: req.user }
+            ],
+            isDeleted: false,
+            'tasks.isDeleted': true
+        });
+        
+        const deletedTasks = [];
+        projects.forEach(project => {
+            project.tasks
+                .filter(task => task.isDeleted)
+                .forEach(task => {
+                    deletedTasks.push({
+                        ...task.toObject(),
+                        projectName: project.name,
+                        projectId: project._id
+                    });
+                });
+        });
+        
+        res.json(deletedTasks);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+router.get("/trash/summary", authMiddleware, async (req, res) => {
+    try {
+        const deletedProjects = await softDeleteService.getDeletedProjects(req.user);
+        
+        const projectsWithDeletedTasks = await Project.find({
+            $or: [
+                { manager: req.user },
+                { members: req.user }
+            ],
+            isDeleted: false,
+            'tasks.isDeleted': true
+        });
+        
+        let deletedTasksCount = 0;
+        projectsWithDeletedTasks.forEach(project => {
+            deletedTasksCount += project.tasks.filter(task => task.isDeleted).length;
+        });
+        
+        res.json({
+            projects: deletedProjects.length,
+            tasks: deletedTasksCount,
+            total: deletedProjects.length + deletedTasksCount
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post("/trash/projects/:id/restore", authMiddleware, async (req, res) => {
+    try {
+        const project = await softDeleteService.restoreProject(
+            req.params.id,
+            req.user
+        );
+        
+        res.json({
+            message: "Project restored successfully",
+            project
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.delete("/trash/empty", authMiddleware, async (req, res) => {
+    try {
+        const result = await softDeleteService.permanentlyDeleteExpiredItems();
+        
+        res.json({
+            message: "Trash emptied successfully",
+            ...result
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.delete("/trash/projects/:id/permanent", authMiddleware, async (req, res) => {
+    try {
+        // Optional: Check if user has admin privileges
+        const project = await softDeleteService.forceDeleteProject(req.params.id);
+        
+        res.json({
+            message: "Project permanently deleted",
+            project
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+async function startAttendanceIfNotRunning(userId) {
+  const today = new Date().toISOString().slice(0, 10);
+
+  let attendance = await Attendance.findOne({ user: req.user, date: today });
+
+  if (!attendance) {
+    attendance = await Attendance.create({
+      user: req.user,
+      date: today,
+      duration: 0,
+      startTime: new Date()
+    });
+    return;
+  }
+
+  if (!attendance.startTime) {
+    attendance.startTime = new Date();
+    await attendance.save();
+  }
+}
+
+async function stopAttendanceIfNoRunningTasks(userId) {
+  const hasRunningTask = await Project.exists({
+    "tasks.logs": {
+      $elemMatch: {
+        user: userId,
+        endTime: null
+      }
+    }
+  });
+
+  if (hasRunningTask) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const attendance = await Attendance.findOne({ user: userId, date: today });
+
+  if (attendance?.runningStartTime) {
+    attendance.duration += Date.now() - attendance.startTime;
+    attendance.startTime = null;
+    await attendance.save();
+  }
+}
+
+
 
 
 export default router;

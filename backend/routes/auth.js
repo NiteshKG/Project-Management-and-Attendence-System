@@ -77,6 +77,16 @@ router.get("/loggeduser", authMiddleware, async (req, res) => {
   }
 });
 
+router.get("/users", authMiddleware, async (req, res) => {
+  try {
+    const users = await User.find().select("_id fullName userName");
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch users" });
+  }
+});
+
+
 
 
 export default router;
