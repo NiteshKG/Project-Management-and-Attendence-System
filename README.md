@@ -23,10 +23,12 @@ This further record sessions and shows in attendance component about total sessi
 ## Projects
 
 When user clicks on create project then project form appears which take input such as deadline, manager, description, tasks(add or remove task functionality) then when user submits the forms , it saves data in backend and redirects back to home page.
+With the functionality of add members and manager , different users can be interacted to edit it or to communicate in chat.
 
 ## Edit-project
 
 when user clicks on edit project from home page then it opens up the form html component with filled data of existing form. and performs updating of data on submission in the existing project id that opens the component with.
+the assigned users is ticked in select checkbox and can be unassigned or can add more users.
 
 
 
