@@ -8,11 +8,16 @@ During routing to various components on projects such as /home, /project,etc... 
 
 ## Home page 
 
-On successful login user redirects to home page , which shows places for projects and attendance timer.
+On successful login user redirects to dashboard of home page  , which shows graphical and chart data and statistics of projects, attendance of month and tasks completed and team members.
 
 ## Attendance
 
-When user start the time on the left upper side of home page , the timer starts and showing the running time in format and when user ends timer then it stores the status of schema :'true' and attendance marks as present.
+When user start the time from timesheet component , the timer starts and showing the running time in format and when user ends timer then it stores the status of schema :'true' and attendance marks as present.
+
+## Timesheet
+
+This is the central point to start work timer and which can be use to track attendance and do calculations for half-day, present or absent and also shows the logs of different entry in a day for a user with start and end time.
+This further record sessions and shows in attendance component about total sessions of a user for a particular day.
 
 
 ## Projects
@@ -23,14 +28,22 @@ When user clicks on create project then project form appears which take input su
 
 when user clicks on edit project from home page then it opens up the form html component with filled data of existing form. and performs updating of data on submission in the existing project id that opens the component with.
 
-## Task - logs
 
-in projects component UI below task there is a functionality to start timer and stop and it also shows the logs of previous timer actions respectively.So that it can track time active for each tasks.
 
-## chat-feature in project
+
 <video controls src="Project Management - Google Chrome 2025-12-22 19-38-36.mp4" title="Title"><video>
 
+
+## chat-feature in project
 In projects component , below is a chat button with stores message sent by user regarding specific project and along with message sent , the user's name along with the time at which it is sent is being displayed.
+
+
+## Trash
+This is used for the recovery of deleted projects which stored in a separate collection and after restoring can be saved to original document and if permanently deleted then its completely deleted can can be restored.
+Later the auto deletion can be added based on project requirement.
+
+## For trash-bin access 
+route is /trash   its not directly accessible for now due to security purposes
 
 ## Project Demonstration
 
