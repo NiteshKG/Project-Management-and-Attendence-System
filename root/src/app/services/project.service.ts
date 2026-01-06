@@ -20,9 +20,14 @@ export class Project{
     return this.http.get(this.API);
 }
 
+getDeletedProjects(): Observable<any> {
+  return this.http.get(`${this.API}/deleted`);
+}
+
 getProject(id: string): Observable<any> {
   return this.http.get(`${this.API}/${id}`);
 }
+
 
 updateProject(id: string, data: any): Observable<any> {
   return this.http.put(`${this.API}/${id}`, data);
@@ -54,6 +59,18 @@ getRunningTask(projectId: string): Observable<any> {
 
      return this.http.get(`${this.API}/${projectId}/running-task`);
 
+}
+
+
+
+
+
+restoreProject(deletedProjectId: string) {
+  return this.http.post(`${this.API}/trash/projects/${deletedProjectId}/restore`, {});
+}
+
+deleteFromTrash(projectId: string) {
+  return this.http.delete(`${this.API}/trash/projects/${projectId}/permanent`);
 }
 
 

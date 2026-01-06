@@ -29,14 +29,14 @@ router.post("/start", authMiddleware, async (req, res) => {
   try {
     const today = new Date().toISOString().slice(0, 10);
 
-    // First check if there's already a running attendance
+    
     const existingRunning = await Attendance.findOne({
       user: req.user,
       date: today,
       isRunning: true
     });
 
-    // If already running, don't create new one, just return current
+    
     if (existingRunning) {
       return res.json({ 
         attendance: existingRunning,
@@ -44,13 +44,13 @@ router.post("/start", authMiddleware, async (req, res) => {
       });
     }
 
-    // Find today's attendance (running or not)
+    
     let attendance = await Attendance.findOne({
       user: req.user,
       date: today
     });
 
-    // If no attendance exists for today, create one
+    
     if (!attendance) {
       attendance = new Attendance({
         user: req.user,
@@ -61,7 +61,7 @@ router.post("/start", authMiddleware, async (req, res) => {
       });
     }
 
-    // If attendance exists but is not running, start it
+    
     if (!attendance.isRunning) {
       attendance.startTime = new Date();
       attendance.isRunning = true;
@@ -77,7 +77,7 @@ router.post("/start", authMiddleware, async (req, res) => {
       });
     }
 
-    // Fallback: return the existing attendance
+    
     res.json({ attendance });
     
   } catch (err) {
@@ -133,7 +133,7 @@ router.get("/me", authMiddleware, async (req, res) => {
     }).sort({ startTime: -1 });
     res.json({ user, attendance });
 
-    // If no attendance for today, create a default one (not running)
+    
     if (!attendance) {
       attendance = new Attendance({
         user: req.user,
@@ -145,12 +145,12 @@ router.get("/me", authMiddleware, async (req, res) => {
       await attendance.save();
     }
 
-    // ✅ CRITICAL FIX: Calculate REAL-TIME duration if attendance is running
+    
     let currentDuration = attendance.duration;
     let elapsedSinceStart = 0;
     
     if (attendance.isRunning && attendance.startTime) {
-      // Calculate how much time has passed since the timer started
+      
       const now = new Date();
       elapsedSinceStart = now - new Date(attendance.startTime);
       const prevMs = parseDuration(attendance.duration);
@@ -161,10 +161,10 @@ router.get("/me", authMiddleware, async (req, res) => {
     res.json({ 
       attendance: {
         ...attendance.toObject(),
-        // Send both the stored duration and the calculated current duration
+        
         duration: attendance.duration,
         currentDuration: currentDuration,
-        elapsedSinceStart: elapsedSinceStart  // For frontend accuracy
+        elapsedSinceStart: elapsedSinceStart  
       }
     });
   } catch (err) {
@@ -191,7 +191,7 @@ router.get("/all", authMiddleware, async (req, res) => {
   try {
     const userId = req.user;
     
-    // Get all attendance records for this user, sorted by date
+    
     const attendanceRecords = await Attendance.find({
       user: userId
     })
@@ -199,9 +199,9 @@ router.get("/all", authMiddleware, async (req, res) => {
     .select("date duration status logs startTime endTime")
     .lean();
 
-    // Format the data
+    
     const formattedRecords = attendanceRecords.map(record => {
-      // Calculate total duration from logs if available
+      
       let totalDurationMs = 0;
       if (record.logs && record.logs.length > 0) {
         record.logs.forEach(log => {
@@ -211,10 +211,10 @@ router.get("/all", authMiddleware, async (req, res) => {
         });
       }
 
-      // Use stored duration or calculate from logs
+      
       const duration = record.duration || formatDuration(totalDurationMs);
       
-      // Determine status
+      
       let status = 'absent';
       if (record.status) {
         const hours = parseDuration(duration) / (60 * 60 * 1000);
@@ -293,7 +293,7 @@ router.get("/my-attendance", authMiddleware, async (req, res) => {
     
     console.log(`Found ${attendance.length} total attendance records`);
     
-    // Group records by date
+    
     const groupedByDate = {};
     
     attendance.forEach(record => {
@@ -313,12 +313,12 @@ router.get("/my-attendance", authMiddleware, async (req, res) => {
       
       groupedByDate[dateString].records.push(record);
       
-      // Calculate total duration
+      
       if (record.endTime && record.startTime) {
         const durationMs = new Date(record.endTime) - new Date(record.startTime);
         groupedByDate[dateString].totalDurationMs += durationMs;
         
-        // Track earliest start and latest end
+        
         const startTime = new Date(record.startTime);
         const endTime = new Date(record.endTime);
         
@@ -352,18 +352,18 @@ router.get("/my-attendance", authMiddleware, async (req, res) => {
   res.json(attendance);
 });
     
-    // Format the data - one entry per day
+    
     const formattedAttendance = Object.keys(groupedByDate).map(dateString => {
       const dayData = groupedByDate[dateString];
       const totalDurationMs = dayData.totalDurationMs;
       
-      // Convert duration to HH:MM:SS format
+      
       const hrs = Math.floor(totalDurationMs / 3600000);
       const mins = Math.floor((totalDurationMs % 3600000) / 60000);
       const sec = Math.floor((totalDurationMs % 60000) / 1000);
       const duration = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
       
-      // Determine status based on total duration
+      
       const status = totalDurationMs > 0 ? 'present' : 'absent';
       
       return {

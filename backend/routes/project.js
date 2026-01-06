@@ -1,7 +1,9 @@
 import express from "express";
 import Project from "../models/Project.js";
+import DeletedProject from "../models/DeletedProject.js";
 import Attendance from "../models/Attendance.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
+import mongoose from "mongoose";
 import softDeleteService from "../services/softDelete.service.js"; 
 
 const router = express.Router();
@@ -24,8 +26,8 @@ router.get("/", authMiddleware, async (req, res) => {
       $or: [
         { manager: userId },
         { members: userId }
-      ],
-      isDeleted: false
+      ]
+      
       
     })
     .populate("members", "fullName userName")
@@ -38,14 +40,61 @@ router.get("/", authMiddleware, async (req, res) => {
 });
 
 
+router.get("/deleted", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    
+    
+    const deletedProjects = await DeletedProject.find({});
+    
+    
+    const result = deletedProjects.map(doc => ({
+      originalDeletedDocId: doc._id,
+      name: doc.originalProject?.name,
+      description: doc.originalProject?.description,
+      user: doc.originalProject?.user,
+      manager: doc.originalProject?.manager,
+      members: doc.originalProject?.members,
+      tasks: doc.originalProject?.tasks,
+      deletedAt: doc.deletedAt,
+      deleteReason: doc.deleteReason
+    }));
+    
+    res.json(result);
+    
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
+
+
+router.get("/:id", authMiddleware, async(req, res) => {
+    try {
+        const userId = req.user.id || req.user._id;
+        
+        const project = await Project.findById(req.params.id);
+        
+        if (!project) {
+            return res.status(404).json({ error: "Project not found" });
+        }
+        
+        res.json(project);
+
+    } catch(err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+/*
 router.get("/:id", authMiddleware ,async(req,res) =>{
     try{
-
+      const userId = req.user.id || req.user._id;
     const project = await Project.findOne({
         _id: req.params.id,
-        userId: req.UserId,
-        isDeleted: false
+        user: userId,
+       
        
        
     });
@@ -58,6 +107,7 @@ router.get("/:id", authMiddleware ,async(req,res) =>{
         res.status(500).json({error: err.message});
     }
 })
+    */
 
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
@@ -96,80 +146,40 @@ router.put("/:id", authMiddleware, async (req, res) => {
 });
 
 
-// In your project routes - fix the DELETE route
-router.delete("/:id", authMiddleware, async (req, res) => {
-    try {
-        console.log('DELETE request for project:', req.params.id);
-        console.log('User making request:', req.user);
-        
-        // First, find the project WITHOUT any user restrictions
-        const project = await Project.findById(req.params.id);
-        
-        if (!project) {
-            console.log('Project not found in database');
-            return res.status(404).json({ 
-                success: false,
-                error: "Project not found" 
-            });
-        }
-        
-        // Check if user has permission (is owner, manager, or member)
-        const userId = req.user.id || req.user._id || req.user;
-        const userString = userId.toString();
-        
-        const isOwner = project.user?.toString() === userString;
-        const isManager = project.manager?.toString() === userString;
-        const isMember = project.members?.some(member => 
-            member?.toString() === userString
-        );
-        
-        console.log('Permission check:', { isOwner, isManager, isMember });
-        console.log('Project user:', project.user);
-        console.log('Project manager:', project.manager);
-        console.log('Project members:', project.members);
-        console.log('Request user ID:', userString);
-        
-        if (!isOwner && !isManager && !isMember) {
-            console.log('User has no permission to delete this project');
-            return res.status(403).json({ 
-                success: false,
-                error: "You don't have permission to delete this project" 
-            });
-        }
-        
-        // Perform soft delete
-        project.isDeleted = true;
-        project.deletedAt = new Date();
-        project.deletedBy = userId;
-        project.willPermanentlyDelete = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-        
-        // Add reason if provided
-        if (req.body?.reason) {
-            project.deletedReason = req.body.reason;
-        }
-        
-        await project.save();
-        
-        console.log('Project soft deleted successfully');
-        
-        res.json({
-            success: true,
-            message: "Project moved to trash",
-            project: {
-                _id: project._id,
-                name: project.name,
-                deletedAt: project.deletedAt,
-                restoreAvailableUntil: project.willPermanentlyDelete
-            }
-        });
 
-    } catch (err) {
-        console.error('Delete error:', err);
-        res.status(500).json({ 
-            success: false,
-            error: err.message 
-        });
+
+
+router.delete("/:id", authMiddleware, async (req, res) => {
+  try {
+    
+    const project = await Project.findById(req.params.id);
+    
+    if (!project) {
+      return res.status(404).json({ error: "Project not found" });
     }
+    
+   
+    const deletedProject = new DeletedProject({
+      originalProject: project.toObject(), 
+      deletedBy: req.user.id,
+      deleteReason: req.body.reason || 'No reason provided'
+    });
+    
+    await deletedProject.save();
+    
+    
+    await Project.findByIdAndDelete(req.params.id);
+    
+    res.json({
+      success: true,
+      message: "Project deleted and moved to trash",
+      deletedProjectId: deletedProject._id,
+      originalProjectName: project.name
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 router.post("/:projectId/tasks", authMiddleware ,async (req,res) =>{
     try{
@@ -213,7 +223,7 @@ router.post("/:projectId/tasks/:taskId/start", authMiddleware ,async (req,res) =
     }
 })
     */
-
+/*
 router.post("/:projectId/tasks/:taskId/start", authMiddleware, async (req, res) => {
   const project = await Project.findById(req.params.projectId);
   const task = project.tasks.id(req.params.taskId);
@@ -270,6 +280,7 @@ router.post("/:projectId/tasks/:taskId/stop" , authMiddleware ,async(req,res) =>
     }
 })    
     */
+   /*
 
 router.post("/:projectId/tasks/:taskId/stop", authMiddleware, async (req, res) => {
   const project = await Project.findById(req.params.projectId);
@@ -306,7 +317,7 @@ router.get("/:projectId/tasks/:taskId/logs" , authMiddleware ,async (req,res) =>
         res.status(500).json({error: err.message});
     }
 })
-
+*/
 router.get("/:projectId/running-task", authMiddleware, async (req, res) => {
   try {
     const project = await Project.findById(req.params.projectId);
@@ -321,125 +332,61 @@ router.get("/:projectId/running-task", authMiddleware, async (req, res) => {
 
 
 
-router.get("/trash/projects", authMiddleware, async (req, res) => {
-    try {
-        console.log('=== TRASH PROJECTS ROUTE ===');
-        console.log('User ID from request:', req.user);
-        console.log('User ID type:', typeof req.user);
-        
-        const deletedProjects = await softDeleteService.getDeletedProjects(req.user);
-        
-        console.log('Sending response with', deletedProjects.length, 'projects');
-        
-        res.json(deletedProjects);
-    } catch (err) {
-        console.error('Error in trash/projects:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
 
-
-router.get("/trash/tasks", authMiddleware, async (req, res) => {
-    try {
-        // Get all active projects where user has access
-        const projects = await Project.find({
-            $or: [
-                { manager: req.user },
-                { members: req.user }
-            ],
-            isDeleted: false,
-            'tasks.isDeleted': true
-        });
-        
-        const deletedTasks = [];
-        projects.forEach(project => {
-            project.tasks
-                .filter(task => task.isDeleted)
-                .forEach(task => {
-                    deletedTasks.push({
-                        ...task.toObject(),
-                        projectName: project.name,
-                        projectId: project._id
-                    });
-                });
-        });
-        
-        res.json(deletedTasks);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-
-router.get("/trash/summary", authMiddleware, async (req, res) => {
-    try {
-        const deletedProjects = await softDeleteService.getDeletedProjects(req.user);
-        
-        const projectsWithDeletedTasks = await Project.find({
-            $or: [
-                { manager: req.user },
-                { members: req.user }
-            ],
-            isDeleted: false,
-            'tasks.isDeleted': true
-        });
-        
-        let deletedTasksCount = 0;
-        projectsWithDeletedTasks.forEach(project => {
-            deletedTasksCount += project.tasks.filter(task => task.isDeleted).length;
-        });
-        
-        res.json({
-            projects: deletedProjects.length,
-            tasks: deletedTasksCount,
-            total: deletedProjects.length + deletedTasksCount
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
 
 router.post("/trash/projects/:id/restore", authMiddleware, async (req, res) => {
-    try {
-        const project = await softDeleteService.restoreProject(
-            req.params.id,
-            req.user
-        );
-        
-        res.json({
-            message: "Project restored successfully",
-            project
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+  try {
+    
+    const deletedDoc = await DeletedProject.findById(req.params.id);
+    
+    if (!deletedDoc) {
+      return res.status(404).json({ error: "Deleted project not found" });
     }
+    
+    
+    const newProject = new Project(deletedDoc.originalProject);
+    
+    
+    
+    await newProject.save();
+    
+    
+    await DeletedProject.findByIdAndDelete(req.params.id);
+    
+    res.json({
+      success: true,
+      message: "Project restored successfully",
+      project: newProject
+    });
+    
+  } catch (err) {
+    console.error("Restore error:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.delete("/trash/empty", authMiddleware, async (req, res) => {
-    try {
-        const result = await softDeleteService.permanentlyDeleteExpiredItems();
-        
-        res.json({
-            message: "Trash emptied successfully",
-            ...result
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+
+
 
 router.delete("/trash/projects/:id/permanent", authMiddleware, async (req, res) => {
-    try {
-        // Optional: Check if user has admin privileges
-        const project = await softDeleteService.forceDeleteProject(req.params.id);
-        
-        res.json({
-            message: "Project permanently deleted",
-            project
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+  try {
+    
+    const deletedDoc = await DeletedProject.findByIdAndDelete(req.params.id);
+    
+    if (!deletedDoc) {
+      return res.status(404).json({ error: "Project not found in trash" });
     }
+    
+    res.json({
+      success: true,
+      message: "Project permanently deleted from trash",
+      projectName: deletedDoc.originalProject?.name
+    });
+    
+  } catch (err) {
+    console.error("Permanent delete error:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 
@@ -485,6 +432,11 @@ async function stopAttendanceIfNoRunningTasks(userId) {
     await attendance.save();
   }
 }
+
+
+
+
+
 
 
 
