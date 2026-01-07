@@ -47,6 +47,21 @@ Later the auto deletion can be added based on project requirement.
 ## For trash-bin access 
 route is /trash   its not directly accessible for now due to security purposes
 
-## Project Demonstration
+## 🎥 Project Demonstration
 
-[Watch the project demonstration video](./Project%20Management%20-%20Google%20Chrome%202025-12-22%2019-38-36.mp4)
+[Watch the project demonstration video]
+
+<video width="800" height="450" controls poster="./assets/video-thumbnail.jpg">
+  <source src="./Project%20Management%20-%20Google%20Chrome%202026-01-07%2016-13-29.mp4" type="video/mp4">
+  Your browser does not support HTML5 video. 
+  [Download the video](./Project%20Management%20-%20Google%20Chrome%202026-01-07%2016-13-29.mp4) instead.
+</video>
+
+<video width="800" height="450" controls poster="./assets/video-thumbnail-2.jpg">
+  <source src="./Project%20Management%20-%20Google%20Chrome%202026-01-07%2016-36-39.mp4" type="video/mp4">
+  Your browser does not support HTML5 video. 
+  [Download the video](./Project%20Management%20-%20Google%20Chrome%202026-01-07%2016-36-39.mp4) instead.
+</video>
+
+
+*Video: Project management system demo showing task creation and team collaboration*
