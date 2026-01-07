@@ -49,19 +49,16 @@ route is /trash   its not directly accessible for now due to security purposes
 
 ## 🎥 Project Demonstration
 
-[Watch the project demonstration video]
-
-<video width="800" height="450" controls poster="./assets/video-thumbnail.jpg">
+### Demo 1: Basic Features
+<video width="800" controls>
   <source src="./Project%20Management%20-%20Google%20Chrome%202026-01-07%2016-13-29.mp4" type="video/mp4">
-  Your browser does not support HTML5 video. 
-  [Download the video](./Project%20Management%20-%20Google%20Chrome%202026-01-07%2016-13-29.mp4) instead.
+  [Download Video 1](./Project%20Management%20-%20Google%20Chrome%202026-01-07%2016-13-29.mp4)
 </video>
 
-<video width="800" height="450" controls poster="./assets/video-thumbnail-2.jpg">
+### Demo 2: Project Features  
+<video width="800" controls>
   <source src="./Project%20Management%20-%20Google%20Chrome%202026-01-07%2016-36-39.mp4" type="video/mp4">
-  Your browser does not support HTML5 video. 
-  [Download the video](./Project%20Management%20-%20Google%20Chrome%202026-01-07%2016-36-39.mp4) instead.
+  [Download Video 2](./Project%20Management%20-%20Google%20Chrome%202026-01-07%2016-36-39.mp4)
 </video>
-
 
 *Video: Project management system demo showing task creation and team collaboration*
